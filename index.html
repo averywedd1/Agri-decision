@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgriDecision | Farmer Navigation Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bree+Serif&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --soil-900: #1a2717;
+  --soil-800: #243721;
+  --soil-700: #2f4a2a;
+  --leaf-600: #4f7f43;
+  --leaf-500: #62994f;
+  --leaf-300: #9ec98e;
+  --hay-200: #f2e6b9;
+  --cream-100: #fbf8ec;
+  --cream-50: #fffdf7;
+  --rust-500: #bd6c38;
+  --text-main: #1f251d;
+  --text-soft: #4a5644;
+  --line: rgba(31, 37, 29, 0.14);
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --shadow-soft: 0 14px 38px rgba(36, 55, 33, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Manrope", sans-serif;
+  color: var(--text-main);
+  background:
+    radial-gradient(circle at 10% 15%, rgba(158, 201, 142, 0.22), transparent 28%),
+    radial-gradient(circle at 88% 8%, rgba(242, 230, 185, 0.45), transparent 34%),
+    var(--cream-100);
+  line-height: 1.6;
+}
+
+.container {
+  width: min(1140px, calc(100% - 2.4rem));
+  margin: 0 auto;
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(255, 253, 247, 0.92);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(10px);
+}
+
+.nav-wrap {
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-family: "Bree Serif", serif;
+  color: var(--soil-800);
+  font-size: 1.2rem;
+}
+
+.brand-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: linear-gradient(145deg, var(--soil-800), var(--leaf-600));
+  color: #f4ffe6;
+  display: grid;
+  place-items: center;
+  font-size: 1rem;
+  box-shadow: 0 10px 18px rgba(36, 55, 33, 0.22);
+}
+
+.menu-btn {
+  display: none;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--soil-900);
+  border-radius: 10px;
+  padding: 0.42rem 0.62rem;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--text-soft);
+  padding: 0.46rem 0.62rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  transition: background 0.2s, color 0.2s;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--soil-900);
+  background: rgba(158, 201, 142, 0.28);
+}
+
+.nav-cta {
+  text-decoration: none;
+  background: var(--soil-800);
+  color: #f8fdee;
+  padding: 0.55rem 0.95rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+main {
+  padding-bottom: 4rem;
+}
+
+.hero {
+  padding: 3.8rem 0 2.6rem;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1.4rem;
+  align-items: stretch;
+}
+
+.hero-card,
+.today-card {
+  background: var(--cream-50);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.hero-card {
+  padding: 2rem;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  padding: 0.26rem 0.72rem;
+  background: rgba(98, 153, 79, 0.15);
+  border: 1px solid rgba(98, 153, 79, 0.26);
+  color: var(--soil-700);
+  font-weight: 700;
+  font-size: 0.76rem;
+  margin-bottom: 0.85rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Bree Serif", serif;
+  line-height: 1.2;
+  color: var(--soil-900);
+}
+
+h1 {
+  font-size: clamp(2rem, 3.8vw, 3.1rem);
+  margin-bottom: 0.9rem;
+}
+
+.hero-card p {
+  color: var(--text-soft);
+  max-width: 62ch;
+  margin-bottom: 1.2rem;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.btn,
+button {
+  border: none;
+  border-radius: 10px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--soil-800);
+  color: #f4ffe6;
+  font-weight: 700;
+  padding: 0.72rem 1rem;
+  text-decoration: none;
+}
+
+.btn-secondary {
+  background: rgba(98, 153, 79, 0.15);
+  color: var(--soil-800);
+  font-weight: 700;
+  padding: 0.72rem 1rem;
+  text-decoration: none;
+}
+
+.today-card {
+  padding: 1.3rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.today-card h2 {
+  font-size: 1.45rem;
+  margin-bottom: 0.2rem;
+}
+
+.today-date {
+  color: var(--leaf-600);
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+}
+
+.today-list {
+  list-style: none;
+  display: grid;
+  gap: 0.62rem;
+}
+
+.today-list li {
+  background: rgba(158, 201, 142, 0.18);
+  border: 1px solid rgba(98, 153, 79, 0.26);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  color: var(--soil-700);
+  font-weight: 600;
+}
+
+.section {
+  padding: 1.8rem 0;
+}
+
+.section-head {
+  margin-bottom: 1rem;
+}
+
+.section-head p {
+  color: var(--text-soft);
+}
+
+.quick-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.quick-card {
+  background: linear-gradient(180deg, #fffef8 0%, #f8f3df 100%);
+  border: 1px solid rgba(189, 108, 56, 0.22);
+  border-radius: var(--radius-md);
+  padding: 1rem 0.9rem;
+  text-decoration: none;
+  color: var(--soil-800);
+  min-height: 115px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.quick-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 22px rgba(189, 108, 56, 0.14);
+}
+
+.quick-card strong {
+  font-size: 0.95rem;
+}
+
+.quick-card span {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+}
+
+.panel {
+  background: var(--cream-50);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 1.3rem;
+  box-shadow: var(--shadow-soft);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.32rem;
+  margin-bottom: 0.64rem;
+}
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  font-weight: 700;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid rgba(31, 37, 29, 0.2);
+  border-radius: 9px;
+  font-family: inherit;
+  padding: 0.62rem 0.68rem;
+  background: #fff;
+  font-size: 0.95rem;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--leaf-600);
+  box-shadow: 0 0 0 3px rgba(98, 153, 79, 0.14);
+}
+
+textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.inline-note {
+  font-size: 0.78rem;
+  color: var(--text-soft);
+}
+
+.calc-results {
+  margin-top: 0.7rem;
+  padding: 0.8rem;
+  border-radius: 11px;
+  background: rgba(98, 153, 79, 0.13);
+  border: 1px solid rgba(98, 153, 79, 0.24);
+  color: var(--soil-800);
+  font-weight: 600;
+}
+
+.metric-grid {
+  margin-top: 0.8rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.metric {
+  background: #fff;
+  border: 1px dashed rgba(31, 37, 29, 0.22);
+  border-radius: 10px;
+  padding: 0.64rem;
+}
+
+.metric small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.metric strong {
+  font-size: 1.05rem;
+  color: var(--soil-900);
+}
+
+.market-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.7rem;
+}
+
+.market-table th,
+.market-table td {
+  border-bottom: 1px solid rgba(31, 37, 29, 0.12);
+  padding: 0.5rem 0.38rem;
+  text-align: left;
+}
+
+.market-table th {
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  color: var(--text-soft);
+}
+
+.market-table td {
+  font-size: 0.88rem;
+}
+
+.risk-pill {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.risk-low {
+  background: rgba(98, 153, 79, 0.18);
+  color: #355e2c;
+}
+
+.risk-mid {
+  background: rgba(242, 190, 88, 0.3);
+  color: #7a4f13;
+}
+
+.risk-high {
+  background: rgba(219, 85, 66, 0.24);
+  color: #7f2c23;
+}
+
+.chat-wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+}
+
+.chat-box {
+  border: 1px solid rgba(31, 37, 29, 0.16);
+  border-radius: 12px;
+  background: #fff;
+  min-height: 260px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.msg {
+  max-width: 88%;
+  padding: 0.65rem 0.76rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+}
+
+.msg.user {
+  align-self: flex-end;
+  background: var(--soil-800);
+  color: #f8fff0;
+}
+
+.msg.ai {
+  align-self: flex-start;
+  background: rgba(158, 201, 142, 0.22);
+  color: var(--soil-900);
+  border: 1px solid rgba(98, 153, 79, 0.18);
+}
+
+.chat-entry {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.6rem;
+}
+
+.chat-entry textarea {
+  min-height: 70px;
+}
+
+.ai-meta {
+  background: rgba(189, 108, 56, 0.11);
+  border: 1px solid rgba(189, 108, 56, 0.22);
+  border-radius: 11px;
+  padding: 0.75rem;
+}
+
+.ai-meta h3 {
+  margin-bottom: 0.4rem;
+}
+
+details {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 0.75rem 0.8rem;
+}
+
+details + details {
+  margin-top: 0.6rem;
+}
+
+summary {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+footer {
+  margin-top: 2.4rem;
+  border-top: 1px solid var(--line);
+  padding: 1.2rem 0 2.2rem;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+}
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeUp 0.6s ease forwards;
+}
+
+.fade-in.delay-1 { animation-delay: 0.08s; }
+.fade-in.delay-2 { animation-delay: 0.16s; }
+.fade-in.delay-3 { animation-delay: 0.24s; }
+
+@keyframes fadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1080px) {
+  .quick-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .hero-grid,
+  .card-grid,
+  .input-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-links {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 70px;
+    background: #fffef8;
+    border-bottom: 1px solid var(--line);
+    padding: 0.8rem 1.2rem 1rem;
+    display: none;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+
+  .nav-links.open {
+    display: flex;
+  }
+
+  .nav-cta {
+    display: none;
+  }
+
+  .chat-entry {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .hero {
+    padding-top: 2.8rem;
+  }
+
+  .quick-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="container nav-wrap">
+    <div class="brand">
+      <div class="brand-badge">AG</div>
+      <span>AgriDecision</span>
+    </div>
+
+    <button id="menu-btn" class="menu-btn" aria-expanded="false" aria-controls="nav-links">Menu</button>
+
+    <nav id="nav-links" class="nav-links">
+      <a href="#home">Home</a>
+      <a href="#start-here">Start Here</a>
+      <a href="#money-tools">Money Tools</a>
+      <a href="#market-watch">Market Watch</a>
+      <a href="#ai-helper">Ask AI</a>
+      <a href="#resource-library">Resources</a>
+    </nav>
+
+    <a class="nav-cta" href="#ai-helper">Get Advice</a>
+  </div>
+</header>
+
+<main>
+  <section id="home" class="hero">
+    <div class="container hero-grid">
+      <article class="hero-card fade-in">
+        <div class="eyebrow">Built For Farmers</div>
+        <h1>One place for farm decisions you can use today</h1>
+        <p>This website keeps things simple: check what to do this week, run quick money math, watch margin risk, and ask your farm AI assistant plain questions.</p>
+        <div class="hero-actions">
+          <a class="btn-primary" href="#start-here">Start In 3 Steps</a>
+          <a class="btn-secondary" href="#money-tools">Open Money Tools</a>
+        </div>
+      </article>
+
+      <aside class="today-card fade-in delay-1">
+        <h2>Today On Your Farm</h2>
+        <p class="today-date" id="today-date">Loading date...</p>
+        <ul class="today-list">
+          <li>Check weather and field work window</li>
+          <li>Update input prices before new purchases</li>
+          <li>Run break-even number before grain sales</li>
+          <li>Ask AI what needs attention first</li>
+        </ul>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>Go Straight To What You Need</h2>
+        <p>Tap any card below to jump to that part of the site.</p>
+      </div>
+      <div class="quick-grid">
+        <a class="quick-card fade-in" href="#start-here">
+          <strong>Start Here</strong>
+          <span>Pick your farm type and season for a clear checklist.</span>
+        </a>
+        <a class="quick-card fade-in delay-1" href="#money-tools">
+          <strong>Money Tools</strong>
+          <span>Break-even, profit estimate, and loan payment in minutes.</span>
+        </a>
+        <a class="quick-card fade-in delay-2" href="#market-watch">
+          <strong>Market Watch</strong>
+          <span>See if your expected prices look safe or risky.</span>
+        </a>
+        <a class="quick-card fade-in delay-3" href="#ai-helper">
+          <strong>Ask AI</strong>
+          <span>Get plain-language next steps based on your numbers.</span>
+        </a>
+        <a class="quick-card fade-in delay-3" href="#resource-library">
+          <strong>Resource Library</strong>
+          <span>Simple explainers for planning, loans, and risk.</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="start-here" class="section">
+    <div class="container card-grid">
+      <article class="panel fade-in">
+        <div class="section-head">
+          <h2>Start Here In 3 Steps</h2>
+          <p>Use this quick setup so the site and AI can give better advice.</p>
+        </div>
+
+        <div class="input-grid">
+          <div class="field">
+            <label for="farm-name">Farm Name</label>
+            <input id="farm-name" type="text" placeholder="Example: Sunrise Family Farm">
+          </div>
+          <div class="field">
+            <label for="farm-type">Farm Type</label>
+            <select id="farm-type">
+              <option value="row">Row Crops (Corn/Soy/Wheat)</option>
+              <option value="cattle">Beef Cattle</option>
+              <option value="dairy">Dairy</option>
+              <option value="orchard">Orchard / Vineyard</option>
+              <option value="specialty">Vegetables / Specialty Crops</option>
+              <option value="mixed">Mixed Operation</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="region">State / Region</label>
+            <input id="region" type="text" placeholder="Example: Central Iowa">
+          </div>
+          <div class="field">
+            <label for="season">Current Season Focus</label>
+            <select id="season">
+              <option value="planting">Planting</option>
+              <option value="growing">Growing</option>
+              <option value="harvest">Harvest</option>
+              <option value="winter">Winter Planning</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="build-checklist" class="btn-primary" type="button">Build My Weekly Checklist</button>
+      </article>
+
+      <article class="panel fade-in delay-1">
+        <h3>Weekly Checklist</h3>
+        <p class="inline-note">This checklist updates based on your farm type and season.</p>
+        <ul id="checklist-items" class="today-list" style="margin-top:0.7rem;">
+          <li>Choose farm type and season, then click "Build My Weekly Checklist".</li>
+        </ul>
+      </article>
+    </div>
+  </section>
+
+  <section id="money-tools" class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2>Money Tools</h2>
+        <p>Quick numbers that help with pricing, buying, and financing decisions.</p>
+      </div>
+
+      <div class="card-grid">
+        <article class="panel fade-in">
+          <h3>Break-Even Price</h3>
+          <p class="inline-note">Use this before you lock in contracts or forward sales.</p>
+          <div class="field">
+            <label for="be-cost">Total Cost Per Acre ($)</label>
+            <input id="be-cost" type="number" min="0" step="0.01" placeholder="850">
+          </div>
+          <div class="field">
+            <label for="be-yield">Expected Yield (units/acre)</label>
+            <input id="be-yield" type="number" min="0" step="0.01" placeholder="185">
+          </div>
+          <button class="btn-primary" type="button" id="run-break-even">Calculate Break-Even</button>
+          <div id="break-even-result" class="calc-results">Enter numbers to calculate your break-even price.</div>
+        </article>
+
+        <article class="panel fade-in delay-1">
+          <h3>Profit Estimate</h3>
+          <p class="inline-note">Helpful for scenario planning before major decisions.</p>
+          <div class="input-grid">
+            <div class="field">
+              <label for="p-acres">Acres</label>
+              <input id="p-acres" type="number" min="0" step="1" placeholder="1200">
+            </div>
+            <div class="field">
+              <label for="p-yield">Yield (units/acre)</label>
+              <input id="p-yield" type="number" min="0" step="0.01" placeholder="185">
+            </div>
+            <div class="field">
+              <label for="p-price">Price per Unit ($)</label>
+              <input id="p-price" type="number" min="0" step="0.01" placeholder="4.80">
+            </div>
+            <div class="field">
+              <label for="p-cost">Cost per Acre ($)</label>
+              <input id="p-cost" type="number" min="0" step="0.01" placeholder="850">
+            </div>
+          </div>
+          <button class="btn-primary" type="button" id="run-profit">Estimate Profit</button>
+          <div class="metric-grid" id="profit-metrics">
+            <div class="metric"><small>Total Revenue</small><strong>$0</strong></div>
+            <div class="metric"><small>Total Cost</small><strong>$0</strong></div>
+            <div class="metric"><small>Estimated Profit</small><strong>$0</strong></div>
+          </div>
+        </article>
+
+        <article class="panel fade-in delay-2">
+          <h3>Loan Payment Estimate</h3>
+          <p class="inline-note">Quick estimate for annual payment pressure.</p>
+          <div class="input-grid">
+            <div class="field">
+              <label for="loan-amt">Loan Amount ($)</label>
+              <input id="loan-amt" type="number" min="0" step="0.01" placeholder="350000">
+            </div>
+            <div class="field">
+              <label for="loan-rate">Interest Rate (%)</label>
+              <input id="loan-rate" type="number" min="0" step="0.01" placeholder="6.75">
+            </div>
+            <div class="field full">
+              <label for="loan-years">Years</label>
+              <input id="loan-years" type="number" min="1" step="1" placeholder="7">
+            </div>
+          </div>
+          <button class="btn-primary" type="button" id="run-loan">Estimate Payment</button>
+          <div id="loan-result" class="calc-results">Enter loan details for an annual payment estimate.</div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="market-watch" class="section">
+    <div class="container card-grid">
+      <article class="panel fade-in">
+        <h2>Market Watch</h2>
+        <p>Compare your expected prices to your break-even number to spot margin risk.</p>
+
+        <div class="input-grid">
+          <div class="field">
+            <label for="m-crop">Crop Name</label>
+            <input id="m-crop" type="text" placeholder="Corn">
+          </div>
+          <div class="field">
+            <label for="m-expected">Expected Price ($/unit)</label>
+            <input id="m-expected" type="number" min="0" step="0.01" placeholder="4.55">
+          </div>
+          <div class="field full">
+            <label for="m-breakeven">Your Break-Even Price ($/unit)</label>
+            <input id="m-breakeven" type="number" min="0" step="0.01" placeholder="4.30">
+          </div>
+        </div>
+
+        <button class="btn-primary" type="button" id="check-margin">Check Margin Risk</button>
+        <div id="margin-result" class="calc-results">Enter expected and break-even prices to check risk.</div>
+      </article>
+
+      <article class="panel fade-in delay-1">
+        <h3>Simple Pricing Notes</h3>
+        <p class="inline-note">Keep this table updated as bids change.</p>
+        <table class="market-table">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Today</th>
+              <th>Target</th>
+              <th>Risk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Corn</td>
+              <td id="corn-price">-</td>
+              <td id="corn-target">-</td>
+              <td id="corn-risk"><span class="risk-pill risk-mid">Watch</span></td>
+            </tr>
+            <tr>
+              <td>Soybeans</td>
+              <td id="soy-price">-</td>
+              <td id="soy-target">-</td>
+              <td id="soy-risk"><span class="risk-pill risk-mid">Watch</span></td>
+            </tr>
+            <tr>
+              <td>Wheat</td>
+              <td id="wheat-price">-</td>
+              <td id="wheat-target">-</td>
+              <td id="wheat-risk"><span class="risk-pill risk-mid">Watch</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+    </div>
+  </section>
+
+  <section id="ai-helper" class="section">
+    <div class="container card-grid">
+      <article class="panel fade-in">
+        <div class="section-head">
+          <h2>Ask The Farm AI Assistant</h2>
+          <p>Ask plain questions like: "Should I sell now or wait two weeks?"</p>
+        </div>
+
+        <div class="ai-meta">
+          <h3>AI Setup</h3>
+          <div class="input-grid">
+            <div class="field">
+              <label for="ai-provider">AI Provider</label>
+              <select id="ai-provider">
+                <option value="openai">OpenAI</option>
+                <option value="openrouter">OpenRouter</option>
+                <option value="groq">Groq</option>
+                <option value="gemini">Google Gemini</option>
+                <option value="mistral">Mistral</option>
+                <option value="custom">Custom OpenAI-Compatible</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="api-key">API Key</label>
+              <input id="api-key" type="password" placeholder="Paste API key">
+            </div>
+            <div class="field full" id="custom-endpoint-wrap" style="display:none;">
+              <label for="custom-endpoint">Custom Endpoint URL</label>
+              <input id="custom-endpoint" type="url" placeholder="https://example.com/v1/chat/completions">
+            </div>
+            <div class="field full" id="custom-model-wrap" style="display:none;">
+              <label for="custom-model">Custom Model Name</label>
+              <input id="custom-model" type="text" placeholder="example-model">
+            </div>
+          </div>
+          <p class="inline-note" id="provider-note">For testing, your key is sent to this site's <code>/api/chat</code> endpoint.</p>
+        </div>
+
+        <div class="chat-wrap">
+          <div id="chat-box" class="chat-box" aria-live="polite">
+            <div class="msg ai">I can help with planning, prices, inputs, and loan pressure. Ask me what decision is toughest right now.</div>
+          </div>
+
+          <div class="chat-entry">
+            <textarea id="chat-input" placeholder="Example: If my break-even is $4.30 and bids are $4.55, how much should I pre-sell?"></textarea>
+            <button id="send-chat" class="btn-primary" type="button">Send Question</button>
+          </div>
+
+          <div>
+            <button class="btn-secondary" type="button" data-quick="Give me this week's top 3 actions based on my farm info.">Weekly priorities</button>
+            <button class="btn-secondary" type="button" data-quick="How can I lower cost per acre without hurting yield?">Cut costs safely</button>
+            <button class="btn-secondary" type="button" data-quick="What loan risks should I watch this season?">Loan risk check</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel fade-in delay-1" id="resource-library">
+        <h2>Resource Library</h2>
+        <p class="inline-note">Plain-language references you can revisit anytime.</p>
+
+        <details open>
+          <summary>How to use break-even quickly</summary>
+          <p>If bid price is above break-even, you have room for margin. If bid price is below break-even, protect cash flow first: reduce risk, trim non-critical spending, and avoid locking losses unless storage or debt pressure forces action.</p>
+        </details>
+
+        <details>
+          <summary>What to bring to a lender meeting</summary>
+          <p>Bring last year revenue, cost per acre, current debt balances, expected yield, and your updated cash flow plan. Showing clear numbers and risk actions builds confidence.</p>
+        </details>
+
+        <details>
+          <summary>Season planning rhythm</summary>
+          <p>Planting season focuses on timing and inputs, growing season focuses on field health and risk checks, harvest season focuses on logistics and marketing, and winter planning focuses on strategy, financing, and equipment decisions.</p>
+        </details>
+
+        <details>
+          <summary>Simple glossary</summary>
+          <p><strong>Break-even:</strong> minimum sale price needed to cover costs. <strong>Margin:</strong> price minus break-even. <strong>Cash flow:</strong> money available to pay bills on time.</p>
+        </details>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <p><strong>AgriDecision Farmer Hub</strong> | Built for clear, everyday farm decisions.</p>
+  </div>
+</footer>
+
+<script>
+const FARM_CHECKLISTS = {
+  row: {
+    planting: [
+      "Check 7-day weather and field trafficability.",
+      "Confirm seed treatment, fertilizer, and chemical delivery windows.",
+      "Set planter calibration and record test strip settings.",
+      "Review pre-emerge and early post spray plans with backup options."
+    ],
+    growing: [
+      "Walk fields and log disease, weeds, and stand uniformity.",
+      "Compare rainfall against crop stage needs.",
+      "Update sidedress or foliar decisions with cost and expected return.",
+      "Refresh break-even and price floor plan before major sales."
+    ],
+    harvest: [
+      "Prioritize fields by moisture and lodging risk.",
+      "Confirm grain hauling schedule and storage condition.",
+      "Track yield in real time against expected break-even outcome.",
+      "Update basis and delivery bids before each sales decision."
+    ],
+    winter: [
+      "Finalize enterprise profitability by field or block.",
+      "Meet with lender using clear cash flow and debt plan.",
+      "Price next-season inputs and lock only when margin works.",
+      "Set crop rotation and seed plan with risk reduction in mind."
+    ]
+  },
+  cattle: {
+    planting: [
+      "Check pasture readiness and rotation timing.",
+      "Update mineral and feed purchase calendar.",
+      "Schedule herd health and vaccination windows.",
+      "Review projected feed cost per head for margin protection."
+    ],
+    growing: [
+      "Score pasture quality and forage supply weekly.",
+      "Track weight gain against feed conversion targets.",
+      "Watch heat stress signals and water availability.",
+      "Review market timing for feeder or finished cattle."
+    ],
+    harvest: [
+      "Secure winter feed inventory and delivery schedule.",
+      "Plan culling decisions based on performance and cash needs.",
+      "Recheck debt and operating line before winter spend.",
+      "Update sales plan with seasonal market moves."
+    ],
+    winter: [
+      "Run feed budget through end of winter.",
+      "Set breeding and calving timeline goals.",
+      "Review equipment repairs before spring workload.",
+      "Meet with lender and vet on risk management priorities."
+    ]
+  },
+  dairy: {
+    planting: [
+      "Align forage planting plan with herd ration needs.",
+      "Check equipment and labor schedule for silage windows.",
+      "Review milk margin projection for next 90 days.",
+      "Confirm feed inventory backup sources."
+    ],
+    growing: [
+      "Track forage quality and adjust ration strategy.",
+      "Monitor herd health indicators and heat stress controls.",
+      "Review milk price and input cost spread weekly.",
+      "Update labor needs for high-workload periods."
+    ],
+    harvest: [
+      "Prioritize forage harvest timing for quality retention.",
+      "Measure bunker packing and storage protection steps.",
+      "Reforecast feed cost through winter.",
+      "Check cash flow against debt obligations."
+    ],
+    winter: [
+      "Balance ration cost with milk output performance.",
+      "Set reproduction and herd improvement targets.",
+      "Schedule major maintenance during low field pressure.",
+      "Prepare lender update with margin and repayment plan."
+    ]
+  },
+  orchard: {
+    planting: [
+      "Schedule pruning and early nutrition program.",
+      "Calibrate irrigation system and check pressure zones.",
+      "Plan early pest scouting calendar.",
+      "Update labor and spray cost forecast."
+    ],
+    growing: [
+      "Walk blocks weekly for pest and disease pressure.",
+      "Track fruit set and thinning progress.",
+      "Monitor irrigation uniformity and stress signs.",
+      "Run margin check for expected packout and price."
+    ],
+    harvest: [
+      "Stage labor and logistics by maturity window.",
+      "Protect fruit quality with cooling and handling checks.",
+      "Track grade and packout against projections.",
+      "Review market channel mix for best returns."
+    ],
+    winter: [
+      "Review block-level profitability and replacement needs.",
+      "Set pruning, fertility, and pest strategy for next season.",
+      "Plan capital spend with expected ROI.",
+      "Meet lenders/partners with clear cash flow scenario."
+    ]
+  },
+  specialty: {
+    planting: [
+      "Map planting windows by crop and labor availability.",
+      "Confirm drip, plastic, and transplant inputs.",
+      "Set harvest channel plan before planting large acreage.",
+      "Review per-crop gross margin targets."
+    ],
+    growing: [
+      "Scout crop health and pest pressure every week.",
+      "Adjust irrigation and fertility using field observations.",
+      "Track labor efficiency and harvest readiness.",
+      "Recheck pricing strategy for direct, wholesale, or CSA sales."
+    ],
+    harvest: [
+      "Coordinate picking schedule with buyer demand.",
+      "Protect quality with fast post-harvest handling.",
+      "Track cull rate and improve handling bottlenecks.",
+      "Update cash flow forecast with actual weekly sales."
+    ],
+    winter: [
+      "Review best and worst-performing crops.",
+      "Set production plan around profitable channels.",
+      "Negotiate supplies early where pricing is favorable.",
+      "Plan staffing and infrastructure improvements."
+    ]
+  },
+  mixed: {
+    planting: [
+      "Prioritize workload by enterprise and labor bottlenecks.",
+      "Confirm input and feed supply across all units.",
+      "Set shared equipment schedule to avoid conflicts.",
+      "Run break-even checks for top revenue enterprises."
+    ],
+    growing: [
+      "Use one dashboard for crops, livestock, and spending.",
+      "Identify the single biggest risk this month.",
+      "Shift labor where return is highest.",
+      "Update marketing plan for each enterprise."
+    ],
+    harvest: [
+      "Sequence harvest and livestock tasks to protect quality.",
+      "Monitor working capital daily during peak expense periods.",
+      "Sell inventory when margin targets are met.",
+      "Document bottlenecks to fix during winter."
+    ],
+    winter: [
+      "Rank enterprises by true profitability.",
+      "Reduce complexity where returns are weakest.",
+      "Plan debt and tax strategy with your advisor.",
+      "Set next-season goals with clear numeric targets."
+    ]
+  }
+};
+
+const AI_PROVIDERS = {
+  openai: {
+    name: "OpenAI",
+    mode: "openai",
+    model: "gpt-4o-mini",
+    endpoint: "https://api.openai.com/v1/chat/completions"
+  },
+  openrouter: {
+    name: "OpenRouter",
+    mode: "openai",
+    model: "openai/gpt-4o-mini",
+    endpoint: "https://openrouter.ai/api/v1/chat/completions"
+  },
+  groq: {
+    name: "Groq",
+    mode: "openai",
+    model: "llama-3.3-70b-versatile",
+    endpoint: "https://api.groq.com/openai/v1/chat/completions"
+  },
+  gemini: {
+    name: "Google Gemini",
+    mode: "gemini",
+    model: "gemini-2.5-flash",
+    endpoint: "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+  },
+  mistral: {
+    name: "Mistral",
+    mode: "openai",
+    model: "mistral-large-latest",
+    endpoint: "https://api.mistral.ai/v1/chat/completions"
+  },
+  custom: {
+    name: "Custom",
+    mode: "openai",
+    model: "",
+    endpoint: ""
+  }
+};
+
+function formatCurrency(num) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0
+  }).format(num);
+}
+
+function toNumber(v) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function setTodayDate() {
+  const dateEl = document.getElementById("today-date");
+  const today = new Date();
+  dateEl.textContent = today.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+}
+
+function updateChecklist() {
+  const type = document.getElementById("farm-type").value;
+  const season = document.getElementById("season").value;
+  const farmName = document.getElementById("farm-name").value.trim();
+  const target = document.getElementById("checklist-items");
+
+  const checklist = (FARM_CHECKLISTS[type] && FARM_CHECKLISTS[type][season]) || [];
+
+  if (!checklist.length) {
+    target.innerHTML = "<li>No checklist found for that selection yet.</li>";
+    return;
+  }
+
+  const heading = farmName ? `${farmName}:` : "Your farm:";
+  target.innerHTML = `<li><strong>${heading}</strong> focus on these this week.</li>` + checklist.map(item => `<li>${item}</li>`).join("");
+}
+
+function calcBreakEven() {
+  const cost = toNumber(document.getElementById("be-cost").value);
+  const yieldValue = toNumber(document.getElementById("be-yield").value);
+  const result = document.getElementById("break-even-result");
+
+  if (cost <= 0 || yieldValue <= 0) {
+    result.textContent = "Please enter cost and yield above zero.";
+    return;
+  }
+
+  const breakEven = cost / yieldValue;
+  result.innerHTML = `Break-even price: <strong>$${breakEven.toFixed(2)}</strong> per unit.`;
+
+  const marketBreakEven = document.getElementById("m-breakeven");
+  if (!marketBreakEven.value) {
+    marketBreakEven.value = breakEven.toFixed(2);
+  }
+}
+
+function calcProfit() {
+  const acres = toNumber(document.getElementById("p-acres").value);
+  const yieldValue = toNumber(document.getElementById("p-yield").value);
+  const price = toNumber(document.getElementById("p-price").value);
+  const costPerAcre = toNumber(document.getElementById("p-cost").value);
+
+  const revenue = acres * yieldValue * price;
+  const cost = acres * costPerAcre;
+  const profit = revenue - cost;
+
+  const metricBox = document.getElementById("profit-metrics");
+  const riskClass = profit >= 0 ? "risk-low" : "risk-high";
+  const riskLabel = profit >= 0 ? "Positive" : "Negative";
+
+  metricBox.innerHTML = `
+    <div class="metric"><small>Total Revenue</small><strong>${formatCurrency(revenue)}</strong></div>
+    <div class="metric"><small>Total Cost</small><strong>${formatCurrency(cost)}</strong></div>
+    <div class="metric"><small>Estimated Profit <span class="risk-pill ${riskClass}">${riskLabel}</span></small><strong>${formatCurrency(profit)}</strong></div>
+  `;
+}
+
+function calcLoan() {
+  const principal = toNumber(document.getElementById("loan-amt").value);
+  const annualRate = toNumber(document.getElementById("loan-rate").value) / 100;
+  const years = toNumber(document.getElementById("loan-years").value);
+  const result = document.getElementById("loan-result");
+
+  if (principal <= 0 || annualRate <= 0 || years <= 0) {
+    result.textContent = "Please enter valid loan amount, rate, and years.";
+    return;
+  }
+
+  const numerator = principal * annualRate;
+  const denominator = 1 - Math.pow(1 + annualRate, -years);
+  const annualPayment = denominator ? numerator / denominator : 0;
+
+  result.innerHTML = `Estimated annual payment: <strong>${formatCurrency(annualPayment)}</strong>.<br>Total paid over loan term: <strong>${formatCurrency(annualPayment * years)}</strong>.`;
+}
+
+function marginPill(diff) {
+  if (diff >= 0.5) return '<span class="risk-pill risk-low">Comfortable</span>';
+  if (diff >= 0.1) return '<span class="risk-pill risk-mid">Thin</span>';
+  return '<span class="risk-pill risk-high">At Risk</span>';
+}
+
+function checkMarginRisk() {
+  const crop = document.getElementById("m-crop").value.trim() || "This crop";
+  const expected = toNumber(document.getElementById("m-expected").value);
+  const breakeven = toNumber(document.getElementById("m-breakeven").value);
+  const result = document.getElementById("margin-result");
+
+  if (expected <= 0 || breakeven <= 0) {
+    result.textContent = "Please enter expected and break-even prices above zero.";
+    return;
+  }
+
+  const diff = expected - breakeven;
+  const msg = diff >= 0
+    ? `${crop} margin is about <strong>$${diff.toFixed(2)}</strong> per unit above break-even.`
+    : `${crop} is about <strong>$${Math.abs(diff).toFixed(2)}</strong> per unit below break-even.`;
+
+  result.innerHTML = `${msg}<br>Risk level: ${marginPill(diff)}`;
+
+  const targets = [
+    { price: "corn-price", target: "corn-target", risk: "corn-risk" },
+    { price: "soy-price", target: "soy-target", risk: "soy-risk" },
+    { price: "wheat-price", target: "wheat-target", risk: "wheat-risk" }
+  ];
+
+  targets.forEach(item => {
+    document.getElementById(item.price).textContent = `$${expected.toFixed(2)}`;
+    document.getElementById(item.target).textContent = `$${breakeven.toFixed(2)}`;
+    document.getElementById(item.risk).innerHTML = marginPill(diff);
+  });
+}
+
+function escapeHtml(text) {
+  return String(text)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function appendMessage(role, text) {
+  const chatBox = document.getElementById("chat-box");
+  const bubble = document.createElement("div");
+  bubble.className = `msg ${role}`;
+  bubble.innerHTML = role === "user" ? escapeHtml(text) : text;
+  chatBox.appendChild(bubble);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function getProviderConfig() {
+  const providerKey = document.getElementById("ai-provider").value;
+  const config = { ...AI_PROVIDERS[providerKey], id: providerKey };
+
+  if (providerKey === "custom") {
+    config.endpoint = document.getElementById("custom-endpoint").value.trim();
+    config.model = document.getElementById("custom-model").value.trim();
+  }
+
+  return config;
+}
+
+function refreshProviderUi() {
+  const provider = document.getElementById("ai-provider").value;
+  const isCustom = provider === "custom";
+
+  document.getElementById("custom-endpoint-wrap").style.display = isCustom ? "block" : "none";
+  document.getElementById("custom-model-wrap").style.display = isCustom ? "block" : "none";
+
+  const note = document.getElementById("provider-note");
+  note.textContent = isCustom
+    ? "Custom mode expects an OpenAI-style chat/completions endpoint."
+    : "For testing, your key is sent to this site's /api/chat endpoint.";
+}
+
+function buildContextSummary() {
+  const farmName = document.getElementById("farm-name").value.trim() || "Unknown farm";
+  const farmType = document.getElementById("farm-type").selectedOptions[0].textContent;
+  const region = document.getElementById("region").value.trim() || "Unknown region";
+  const season = document.getElementById("season").selectedOptions[0].textContent;
+
+  const beCost = document.getElementById("be-cost").value || "not entered";
+  const beYield = document.getElementById("be-yield").value || "not entered";
+  const pAcres = document.getElementById("p-acres").value || "not entered";
+  const pPrice = document.getElementById("p-price").value || "not entered";
+  const loanAmt = document.getElementById("loan-amt").value || "not entered";
+
+  return `
+Farm name: ${farmName}
+Farm type: ${farmType}
+Region: ${region}
+Season focus: ${season}
+Break-even cost per acre input: ${beCost}
+Break-even yield input: ${beYield}
+Profit acres input: ${pAcres}
+Profit price input: ${pPrice}
+Loan amount input: ${loanAmt}
+`;
+}
+
+async function callBackendAi(provider, apiKey, userPrompt, systemPrompt) {
+  if (window.location.protocol === "file:") {
+    throw new Error("You are opening the file directly. Deploy the site (or run a local server) so /api/chat is available.");
+  }
+
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      provider,
+      apiKey,
+      userPrompt,
+      systemPrompt,
+      maxTokens: 1200,
+      temperature: 0.5
+    })
+  });
+
+  const raw = await response.text();
+  let data = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    data = { raw };
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || data?.message || `HTTP ${response.status}`);
+  }
+
+  return data?.answer || "No response text was returned.";
+}
+
+async function askAi() {
+  const input = document.getElementById("chat-input");
+  const sendBtn = document.getElementById("send-chat");
+  const question = input.value.trim();
+
+  if (!question) return;
+
+  const provider = getProviderConfig();
+  const apiKey = document.getElementById("api-key").value.trim();
+
+  if (!provider.endpoint || !provider.model) {
+    alert("Please complete your provider settings first.");
+    return;
+  }
+
+  appendMessage("user", question);
+  input.value = "";
+  sendBtn.disabled = true;
+  appendMessage("ai", "<em>Thinking through your farm numbers...</em>");
+
+  const chatBox = document.getElementById("chat-box");
+  const pending = chatBox.lastElementChild;
+
+  const systemPrompt = "You are a practical farm advisor. Use plain language, prioritize the top 3 actions, and include numbers when possible. Do not use complicated jargon.";
+  const userPrompt = `Farm context:\n${buildContextSummary()}\n\nFarmer question: ${question}\n\nRespond with short sections: 1) What this means, 2) Top actions this week, 3) What to watch next.`;
+
+  try {
+    const answer = await callBackendAi(provider, apiKey, userPrompt, systemPrompt);
+    const safe = escapeHtml(answer).replaceAll("\n", "<br>");
+    pending.innerHTML = safe;
+  } catch (error) {
+    pending.innerHTML = `<span style="color:#7f2c23;">AI error: ${escapeHtml(error.message)}</span>`;
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+function bindQuickPrompts() {
+  document.querySelectorAll("[data-quick]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.getElementById("chat-input").value = btn.getAttribute("data-quick") || "";
+      askAi();
+    });
+  });
+}
+
+function initNav() {
+  const menuBtn = document.getElementById("menu-btn");
+  const navLinks = document.getElementById("nav-links");
+  const links = navLinks.querySelectorAll("a");
+
+  menuBtn.addEventListener("click", () => {
+    const open = navLinks.classList.toggle("open");
+    menuBtn.setAttribute("aria-expanded", String(open));
+  });
+
+  links.forEach(link => {
+    link.addEventListener("click", () => {
+      navLinks.classList.remove("open");
+      menuBtn.setAttribute("aria-expanded", "false");
+    });
+  });
+
+  const sections = Array.from(document.querySelectorAll("main section[id]"));
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      links.forEach(link => link.classList.remove("active"));
+      const active = navLinks.querySelector(`a[href="#${entry.target.id}"]`);
+      if (active) active.classList.add("active");
+    });
+  }, { threshold: 0.4 });
+
+  sections.forEach(section => observer.observe(section));
+}
+
+document.getElementById("build-checklist").addEventListener("click", updateChecklist);
+document.getElementById("run-break-even").addEventListener("click", calcBreakEven);
+document.getElementById("run-profit").addEventListener("click", calcProfit);
+document.getElementById("run-loan").addEventListener("click", calcLoan);
+document.getElementById("check-margin").addEventListener("click", checkMarginRisk);
+document.getElementById("send-chat").addEventListener("click", askAi);
+document.getElementById("ai-provider").addEventListener("change", refreshProviderUi);
+document.getElementById("chat-input").addEventListener("keydown", function(event) {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    askAi();
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTodayDate();
+  refreshProviderUi();
+  bindQuickPrompts();
+  initNav();
+});
+</script>
+</body>
+</html>
