@@ -16,8 +16,21 @@
       <span class="brand-mark">AI</span>
       <span>AgriDecision AI</span>
     </a>
-    <div class="nav-links"></div>
-    <button class="account-btn" type="button" id="account-nav-btn">Create Account</button>
+    <div class="nav-actions">
+      <details class="site-menu" id="site-menu">
+        <summary class="menu-toggle" aria-label="Open page menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </summary>
+        <div class="menu-panel" id="site-menu-panel">
+          <button class="workspace-tab active" type="button" data-app-tab="workspace" onclick="this.closest('details').removeAttribute('open')">Farm Workspace</button>
+          <button class="workspace-tab" type="button" data-app-tab="ai" onclick="this.closest('details').removeAttribute('open')">AgriDecision AI</button>
+          <button class="workspace-tab" type="button" data-app-tab="story" onclick="this.closest('details').removeAttribute('open')">Story</button>
+        </div>
+      </details>
+      <button class="account-btn" type="button" id="account-nav-btn">Create Account</button>
+    </div>
   </nav>
 
   <div class="account-modal" id="account-modal" aria-hidden="true">
@@ -39,12 +52,6 @@
         <button class="primary-btn" type="button" id="save-account">Create Account</button>
       </div>
     </div>
-  </div>
-
-  <div class="workspace-tabs" role="tablist" aria-label="AgriDecision workspace tabs">
-    <button class="workspace-tab active" type="button" data-app-tab="workspace">Farm Workspace</button>
-    <button class="workspace-tab" type="button" data-app-tab="ai">AgriDecision AI</button>
-    <button class="workspace-tab" type="button" data-app-tab="story">Story</button>
   </div>
 
   <div class="app-view active" id="workspace-view">
