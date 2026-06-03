@@ -143,7 +143,7 @@ function normalizeYahooQuote(product, quote) {
 
   return {
     commodity: product.commodity,
-    contract: product.contractHint,
+    contract: pickFirst(quote.shortName, quote.displayName, product.contractHint),
     last,
     settle: "",
     priorSettle: "",
@@ -155,20 +155,92 @@ function normalizeYahooQuote(product, quote) {
   };
 }
 
-async function fetchBackupQuotes() {
+async function fetchYahooQuoteApi() {
   const symbols = PRODUCTS.map(product => product.yahooSymbol).join(",");
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}`;
-  const data = await fetchJson(url, {
-    headers: {
-      "Accept": "application/json",
-      "User-Agent": "Mozilla/5.0 AgriDecisionAI/1.0"
+  const headers = {
+    "Accept": "application/json",
+    "User-Agent": "Mozilla/5.0 AgriDecisionAI/1.0"
+  };
+  const urls = [
+    `https://query1.finance.yahoo.com/v6/finance/quote?symbols=${encodeURIComponent(symbols)}`,
+    `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}`
+  ];
+  const errors = [];
+
+  for (const url of urls) {
+    try {
+      const data = await fetchJson(url, { headers });
+      const results = data?.quoteResponse?.result || [];
+      const quotes = PRODUCTS.map(product => {
+        const quote = results.find(item => item.symbol === product.yahooSymbol);
+        return quote ? normalizeYahooQuote(product, quote) : null;
+      }).filter(Boolean);
+      if (quotes.length) return quotes;
+    } catch (error) {
+      errors.push(error.message);
     }
-  });
-  const results = data?.quoteResponse?.result || [];
-  return PRODUCTS.map(product => {
-    const quote = results.find(item => item.symbol === product.yahooSymbol);
-    return quote ? normalizeYahooQuote(product, quote) : null;
-  }).filter(Boolean);
+  }
+
+  throw new Error(`Yahoo quote API failed. ${errors.join("; ")}`);
+}
+
+function normalizeYahooChartQuote(product, chart) {
+  const meta = chart?.chart?.result?.[0]?.meta || {};
+  const last = formatNumber(meta.regularMarketPrice);
+  const previous = Number(meta.chartPreviousClose || meta.previousClose);
+  const current = Number(meta.regularMarketPrice);
+  const change = Number.isFinite(current) && Number.isFinite(previous)
+    ? formatNumber(current - previous)
+    : "";
+
+  return {
+    commodity: product.commodity,
+    contract: pickFirst(meta.longName, meta.shortName, product.contractHint),
+    last,
+    settle: "",
+    priorSettle: Number.isFinite(previous) ? formatNumber(previous) : "",
+    change,
+    volume: meta.regularMarketVolume ? Number(meta.regularMarketVolume).toLocaleString("en-US") : "",
+    sourceLabel: "Backup",
+    sourceUrl: product.quotePage,
+    updated: meta.regularMarketTime ? new Date(meta.regularMarketTime * 1000).toISOString() : ""
+  };
+}
+
+async function fetchYahooChartQuotes() {
+  const headers = {
+    "Accept": "application/json",
+    "User-Agent": "Mozilla/5.0 AgriDecisionAI/1.0"
+  };
+  const responses = await Promise.allSettled(PRODUCTS.map(async product => {
+    const symbol = encodeURIComponent(product.yahooSymbol);
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5d`;
+    const data = await fetchJson(url, { headers });
+    const quote = normalizeYahooChartQuote(product, data);
+    return quote.last ? quote : null;
+  }));
+  const quotes = responses
+    .filter(result => result.status === "fulfilled" && result.value)
+    .map(result => result.value);
+  const errors = responses
+    .filter(result => result.status === "rejected")
+    .map(result => result.reason?.message || String(result.reason));
+
+  if (quotes.length) return quotes;
+  throw new Error(`Yahoo chart API failed. ${errors.join("; ")}`);
+}
+
+async function fetchBackupQuotes() {
+  const errors = [];
+  for (const fetcher of [fetchYahooQuoteApi, fetchYahooChartQuotes]) {
+    try {
+      const quotes = await fetcher();
+      if (quotes.length) return quotes;
+    } catch (error) {
+      errors.push(error.message);
+    }
+  }
+  throw new Error(errors.join(" "));
 }
 
 module.exports = async function handler(req, res) {
