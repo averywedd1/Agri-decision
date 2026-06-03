@@ -1,0 +1,28 @@
+.auth-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--green-50);
+}
+
+.auth-mode button {
+  min-height: 34px;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.auth-mode button.active {
+  background: white;
+  color: var(--green-800);
+  border-color: var(--green-200);
+}
+
+.account-sync-status {
+  min-height: 20px;
+  font-size: 13px;
+}

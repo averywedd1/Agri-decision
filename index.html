@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/cloud-sync.css">
 </head>
 <body>
   <nav class="topbar">
@@ -27,12 +28,19 @@
   <div class="account-modal" id="account-modal" aria-hidden="true">
     <div class="account-dialog" role="dialog" aria-modal="true" aria-labelledby="account-title">
       <h2 id="account-title">Create your AgriDecision account</h2>
-      <p>Save a local account profile on this device, then keep multiple farm-analysis projects under it.</p>
+      <p id="account-help">Sign in to sync your profile, projects, reports, and chat history across devices.</p>
+      <div class="auth-mode" role="group" aria-label="Account mode">
+        <button class="active" type="button" id="auth-create-mode">Create</button>
+        <button type="button" id="auth-signin-mode">Sign In</button>
+      </div>
       <label>Your Name<input id="account-name" type="text" placeholder="John Doe"></label>
       <label>Email<input id="account-email" type="email" placeholder="you@example.com"></label>
+      <label>Password<input id="account-password" type="password" autocomplete="current-password" placeholder="At least 6 characters"></label>
       <label>First Project<input id="account-farm" type="text" placeholder="Sunrise Grain LLC"></label>
+      <p class="account-sync-status" id="account-sync-status">Checking cloud account setup...</p>
       <div class="dialog-actions">
         <button class="ghost-btn" type="button" id="cancel-account">Cancel</button>
+        <button class="ghost-btn" type="button" id="sign-out-account">Sign Out</button>
         <button class="primary-btn" type="button" id="save-account">Create Account</button>
       </div>
     </div>
@@ -255,13 +263,14 @@
       </div>
 
       <div class="story-note">
-        <h3>The long-term direction</h3>
-        <p>The next major step is true cloud accounts: a secure login, database-backed projects, and saved reports that follow the user across devices. The current version saves projects in the browser, which is useful for returning on the same computer, but cloud storage is the right path for a production account system.</p>
+        <h3>Built to travel with the user</h3>
+        <p>With cloud accounts configured, AgriDecision AI saves profiles, projects, reports, and chat history behind sign-in so the same work can reload across devices. If cloud sync is not connected yet, the site keeps saving locally in the browser as a fallback.</p>
       </div>
     </div>
   </section>
 
   <footer><strong>AgriDecision AI</strong> · Farm Business Analytics & Investment Simulator</footer>
   <script src="/app.js"></script>
+  <script src="/cloud-sync.js"></script>
 </body>
 </html>
