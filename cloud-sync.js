@@ -1,5 +1,6 @@
 (function () {
-  const tags = '<script src="/cloud-sync-original.js"></script><script src="/cme-table.js"></script><script src="/tools.js"></script>';
+  const scripts = ["/tools.js", "/enhancements.js"];
+  const tags = scripts.map(src => `<script src="${src}"></script>`).join("");
 
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -17,7 +18,7 @@
     return;
   }
 
-  ["/cloud-sync-original.js", "/cme-table.js", "/tools.js"]
+  scripts
     .reduce((chain, src) => chain.then(() => loadScript(src)), Promise.resolve())
-    .catch(error => console.error("AgriDecision script loader failed", error));
+    .catch(error => console.error("AgriDecision enhancement loader failed", error));
 }());
