@@ -26,3 +26,23 @@
   min-height: 20px;
   font-size: 13px;
 }
+
+.analysis-content {
+  min-height: 240px;
+}
+
+.ai-view {
+  padding-top: 44px;
+}
+
+.story-intro {
+  margin-top: 30px;
+}
+
+.story-flow article {
+  padding: 22px;
+}
+
+.account-modal {
+  padding: 20px;
+}
