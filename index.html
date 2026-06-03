@@ -28,7 +28,7 @@
     <div class="account-dialog" role="dialog" aria-modal="true" aria-labelledby="account-title">
       <h2 id="account-title">Create your AgriDecision account</h2>
       <p>Save a local account profile on this device, then keep multiple farm-analysis projects under it.</p>
-      <label>Your Name<input id="account-name" type="text" placeholder="Avery Weddle"></label>
+      <label>Your Name<input id="account-name" type="text" placeholder="John Doe"></label>
       <label>Email<input id="account-email" type="email" placeholder="you@example.com"></label>
       <label>First Project<input id="account-farm" type="text" placeholder="Sunrise Grain LLC"></label>
       <div class="dialog-actions">
@@ -38,6 +38,12 @@
     </div>
   </div>
 
+  <div class="workspace-tabs" role="tablist" aria-label="AgriDecision workspace tabs">
+    <button class="workspace-tab active" type="button" data-app-tab="workspace">Farm Workspace</button>
+    <button class="workspace-tab" type="button" data-app-tab="ai">AgriDecision AI</button>
+  </div>
+
+  <div class="app-view active" id="workspace-view">
   <header class="hero" id="home">
     <div class="hero-badge">AI-powered farm intelligence</div>
     <h1>Your farm, <em>analyzed</em><br>like a Fortune 500</h1>
@@ -79,13 +85,7 @@
       <div class="settings-bar">
         <label>AI Provider
           <select id="ai-provider">
-            <option value="all">All configured AIs</option>
-            <option value="openai">OpenAI</option>
-            <option value="openrouter">OpenRouter</option>
-            <option value="groq">Groq</option>
-            <option value="gemini" selected>Google Gemini</option>
-            <option value="mistral">Mistral</option>
-            <option value="custom">Custom AI</option>
+            <option value="">Loading configured AIs...</option>
           </select>
         </label>
         <div class="custom-provider-fields" id="custom-provider-fields">
@@ -181,6 +181,42 @@
       </div>
     </section>
   </main>
+  </div>
+
+  <section class="app-view ai-view" id="ai-view">
+    <div class="section ai-lab">
+      <div class="section-kicker">AgriDecision AI</div>
+      <h2>Ask all configured AIs at once</h2>
+      <p class="section-lead">This tab combines the AI providers that are configured in Vercel and uses your saved account/project information as context.</p>
+
+      <div class="ai-layout">
+        <div class="ai-context-panel">
+          <h3>Current saved context</h3>
+          <p id="ai-context-summary">Create an account and save a project to use farm data as AI context.</p>
+          <button class="ghost-btn" type="button" id="ai-save-context">Save Current Project</button>
+        </div>
+
+        <div class="chatbot-card ai-combo-card">
+          <div class="chatbot-header">
+            <h3>AgriDecision AI</h3>
+            <small>Uses all configured API providers together when more than one is available.</small>
+          </div>
+          <div class="chatbot-messages" id="ai-combo-messages">
+            <div class="chat-msg ai">Ask a farm business, financing, commodity, or project question. I will use your saved project details.</div>
+          </div>
+          <div class="chatbot-quick">
+            <button type="button" data-ai-question="Use my saved project and tell me the biggest decision I should make this week.">Weekly decision</button>
+            <button type="button" data-ai-question="Compare my revenue, costs, debt, and risk. What is the strongest recommendation?">Full recommendation</button>
+            <button type="button" data-ai-question="What questions should I ask my lender based on this farm project?">Lender questions</button>
+          </div>
+          <div class="chatbot-input-row">
+            <textarea id="ai-combo-input" placeholder="Ask AgriDecision AI..."></textarea>
+            <button class="primary-btn" type="button" id="ai-combo-send">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <footer><strong>AgriDecision AI</strong> - Farm Business Analytics & Investment Simulator</footer>
   <script src="/app.js"></script>

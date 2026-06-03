@@ -73,6 +73,32 @@ body {
 }
 .nav-links a:hover { color: var(--green-700); }
 
+.workspace-tabs {
+  position: sticky;
+  top: 60px;
+  z-index: 90;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: rgba(250, 248, 243, 0.95);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+}
+.workspace-tab {
+  min-width: 160px;
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--line);
+}
+.workspace-tab.active {
+  background: var(--green-800);
+  color: white;
+  border-color: var(--green-800);
+}
+.app-view { display: none; }
+.app-view.active { display: block; }
+
 .hero {
   max-width: 840px;
   margin: 0 auto;
@@ -427,6 +453,34 @@ button, .primary-btn, .ghost-btn {
   max-height: 130px;
 }
 
+.ai-view {
+  min-height: calc(100vh - 60px);
+  padding-top: 44px;
+  background: var(--green-950);
+}
+.ai-lab h2 { color: white; }
+.ai-lab .section-kicker { color: var(--green-300); }
+.ai-lab .section-lead { color: rgba(255, 255, 255, 0.72); }
+.ai-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 22px;
+  align-items: start;
+}
+.ai-context-panel {
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.86);
+}
+.ai-context-panel h3 { color: white; margin-top: 0; }
+.ai-context-panel p {
+  margin: 10px 0 18px;
+  color: rgba(255, 255, 255, 0.68);
+}
+.ai-combo-card { margin-top: 0; }
+
 .account-modal {
   position: fixed;
   inset: 0;
@@ -460,7 +514,10 @@ footer strong { color: rgba(255, 255, 255, 0.76); }
   .nav-links { display: none; }
   .section, .hero { padding-left: 22px; padding-right: 22px; }
   .feature-grid, .form-grid { grid-template-columns: 1fr; }
+  .workspace-tabs { justify-content: stretch; }
+  .workspace-tab { flex: 1; min-width: 0; }
   .project-manager { grid-template-columns: 1fr; }
+  .ai-layout { grid-template-columns: 1fr; }
   .chatbot-input-row { grid-template-columns: 1fr; }
 }
 
