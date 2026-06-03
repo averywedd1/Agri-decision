@@ -23,6 +23,69 @@
     document.head.appendChild(style);
   }
 
+  function installChatContrastStyles() {
+    if (document.getElementById("agri-chat-contrast-style")) return;
+    const style = document.createElement("style");
+    style.id = "agri-chat-contrast-style";
+    style.textContent = `
+      #analysis-section .chatbot-card {
+        background: #f7faf5;
+        border-color: rgba(176, 223, 169, 0.55);
+        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.24);
+      }
+      #analysis-section .chatbot-header {
+        background: #1a3318;
+        border-bottom-color: rgba(176, 223, 169, 0.28);
+      }
+      #analysis-section .chatbot-header h3 {
+        color: #ffffff;
+      }
+      #analysis-section .chatbot-header small {
+        color: #dff2db;
+      }
+      #analysis-section .chatbot-messages {
+        background: #eef6ea;
+      }
+      #analysis-section .chat-msg {
+        border: 1px solid rgba(26, 51, 24, 0.13);
+        box-shadow: 0 4px 12px rgba(26, 51, 24, 0.08);
+      }
+      #analysis-section .chat-msg.ai {
+        background: #ffffff;
+        color: #1a1a18;
+      }
+      #analysis-section .chat-msg.ai strong,
+      #analysis-section .chat-msg.ai h1,
+      #analysis-section .chat-msg.ai h2,
+      #analysis-section .chat-msg.ai h3,
+      #analysis-section .chat-msg.ai h4 {
+        color: #122212;
+      }
+      #analysis-section .chat-msg.user {
+        background: #244d22;
+        color: #ffffff;
+        border-color: #3a8035;
+      }
+      #analysis-section .chatbot-quick {
+        background: #f7faf5;
+      }
+      #analysis-section .chatbot-quick button {
+        background: #dff2db;
+        color: #122212;
+        border-color: #b0dfa9;
+      }
+      #analysis-section .chatbot-input-row {
+        background: #ffffff;
+        border-top-color: rgba(26, 51, 24, 0.16);
+      }
+      #analysis-section .chatbot-input-row textarea {
+        background: #ffffff;
+        color: #1a1a18;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function applyLogo() {
     const brand = document.querySelector(".brand");
     if (!brand || brand.dataset.logoApplied === "true") return;
@@ -82,6 +145,7 @@
 
   function applyUiFixes() {
     installLogoStyles();
+    installChatContrastStyles();
     applyLogo();
 
     const workspaceMarketWatch = document.getElementById("market-watch");
