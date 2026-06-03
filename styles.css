@@ -481,6 +481,65 @@ button, .primary-btn, .ghost-btn {
 }
 .ai-combo-card { margin-top: 0; }
 
+.story-view {
+  min-height: calc(100vh - 60px);
+  padding-top: 44px;
+  background: linear-gradient(180deg, #f8f4ea 0%, #eef4ea 100%);
+}
+.story-section h2 {
+  max-width: 900px;
+}
+.story-intro {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+  margin-top: 30px;
+}
+.story-intro h3,
+.story-note h3 {
+  margin-top: 0;
+  color: var(--green-950);
+}
+.story-intro p,
+.story-note p {
+  color: var(--muted);
+  line-height: 1.75;
+}
+.story-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 28px;
+}
+.story-flow article {
+  padding: 22px;
+  border: 1px solid rgba(46, 89, 42, 0.14);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.72);
+}
+.story-flow span {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: var(--green-600);
+  font-size: 13px;
+  font-weight: 700;
+}
+.story-flow h3 {
+  margin: 0 0 8px;
+  color: var(--green-950);
+}
+.story-flow p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.story-note {
+  margin-top: 28px;
+  padding: 24px;
+  border-left: 4px solid var(--green-500);
+  background: rgba(255, 255, 255, 0.62);
+}
+
 .account-modal {
   position: fixed;
   inset: 0;
@@ -518,6 +577,8 @@ footer strong { color: rgba(255, 255, 255, 0.76); }
   .workspace-tab { flex: 1; min-width: 0; }
   .project-manager { grid-template-columns: 1fr; }
   .ai-layout { grid-template-columns: 1fr; }
+  .story-intro,
+  .story-flow { grid-template-columns: 1fr; }
   .chatbot-input-row { grid-template-columns: 1fr; }
 }
 

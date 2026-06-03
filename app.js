@@ -505,7 +505,7 @@ async function loadFutures() {
     if (!response.ok) throw new Error(data?.error || "Unable to load futures data.");
     const rows = (data.quotes || []).slice(0, 12);
     $("futures-body").innerHTML = rows.length ? rows.map(row => `
-      <tr><td>${esc(row.commodity)}</td><td>${esc(row.contract || "-")}</td><td>${esc(row.last || row.settle || row.priorSettle || "-")}</td><td>${esc(row.change || "-")}</td><td>${esc(row.volume || "-")}</td><td><a href="${esc(row.sourceUrl)}" target="_blank" rel="noopener">CME</a></td></tr>
+      <tr><td>${esc(row.commodity)}</td><td>${esc(row.contract || "-")}</td><td>${esc(row.last || row.settle || row.priorSettle || "-")}</td><td>${esc(row.change || "-")}</td><td>${esc(row.volume || "-")}</td><td><a href="${esc(row.sourceUrl)}" target="_blank" rel="noopener">${esc(row.sourceLabel || "CME")}</a></td></tr>
     `).join("") : '<tr><td colspan="6">No futures quotes returned right now.</td></tr>';
     $("futures-note").textContent = data.note || $("futures-note").textContent;
   } catch (error) {
@@ -607,6 +607,7 @@ function switchAppTab(tabName) {
   document.querySelectorAll(".workspace-tab").forEach(button => button.classList.toggle("active", button.dataset.appTab === tabName));
   $("workspace-view").classList.toggle("active", tabName === "workspace");
   $("ai-view").classList.toggle("active", tabName === "ai");
+  $("story-view").classList.toggle("active", tabName === "story");
   if (tabName === "ai") {
     saveProject({ silent: true, skipPrompt: true });
     updateAIContext();
