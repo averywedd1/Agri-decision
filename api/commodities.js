@@ -10,53 +10,165 @@ const PRODUCTS = [
   {
     commodity: "Corn",
     productId: "300",
+    yahooSymbol: "ZC=F",
+    contractHint: "Corn front month",
     quotePage: "https://www.cmegroup.com/markets/agriculture/grains/corn.quotes.html"
   },
   {
     commodity: "Soybeans",
     productId: "320",
+    yahooSymbol: "ZS=F",
+    contractHint: "Soybeans front month",
     quotePage: "https://www.cmegroup.com/markets/agriculture/oilseeds/soybean.quotes.html"
   },
   {
     commodity: "Chicago SRW Wheat",
     productId: "323",
+    yahooSymbol: "ZW=F",
+    contractHint: "Wheat front month",
     quotePage: "https://www.cmegroup.com/markets/agriculture/grains/wheat.quotes.html"
   }
 ];
 
 function pickFirst(...values) {
-  return values.find(value => value !== undefined && value !== null && value !== "") || "";
+  return values.find(value => value !== undefined && value !== null && value !== "" && value !== "-") || "";
+}
+
+function formatNumber(value, digits = 2) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "";
+  return number.toLocaleString("en-US", {
+    minimumFractionDigits: number % 1 === 0 ? 0 : digits,
+    maximumFractionDigits: digits
+  });
+}
+
+function getQuotes(data) {
+  if (Array.isArray(data)) return data;
+  const candidates = [
+    data?.quotes,
+    data?.quoteData,
+    data?.quote,
+    data?.results,
+    data?.payload?.quotes,
+    data?.data?.quotes
+  ];
+  return candidates.find(Array.isArray) || [];
 }
 
 function normalizeQuote(product, quote) {
+  const contract = pickFirst(
+    quote.expirationMonth,
+    quote.expirationMonthName,
+    quote.contractMonth,
+    quote.month,
+    quote.monthCode,
+    quote.contract,
+    quote.expirationCode
+  );
+  const last = pickFirst(
+    quote.last,
+    quote.lastPrice,
+    quote.lastTradePrice,
+    quote.tradePrice,
+    quote.price,
+    quote.formattedLast
+  );
+  const settle = pickFirst(quote.settle, quote.settlement, quote.lastSettle, quote.settlePrice);
+  const priorSettle = pickFirst(quote.priorSettle, quote.previousSettle, quote.previousSettlement);
+
   return {
     commodity: product.commodity,
-    contract: pickFirst(quote.expirationMonth, quote.contractMonth, quote.month, quote.monthCode),
-    last: pickFirst(quote.last, quote.price, quote.tradePrice),
-    settle: pickFirst(quote.settle, quote.settlement, quote.lastSettle),
-    priorSettle: pickFirst(quote.priorSettle, quote.previousSettle),
-    change: pickFirst(quote.change, quote.netChange, quote.changeValue),
-    volume: pickFirst(quote.volume, quote.totalVolume),
-    sourceUrl: product.quotePage
+    contract,
+    last,
+    settle,
+    priorSettle,
+    change: pickFirst(quote.change, quote.netChange, quote.changeValue, quote.priceChange),
+    volume: pickFirst(quote.volume, quote.totalVolume, quote.trades),
+    sourceLabel: "CME",
+    sourceUrl: product.quotePage,
+    updated: pickFirst(quote.updated, quote.lastUpdate, quote.tradeTime)
   };
 }
 
-async function fetchProduct(product) {
-  const url = `https://www.cmegroup.com/CmeWS/mvc/Quotes/Future/${product.productId}/G?isProtected&_t=${Date.now()}`;
-  const response = await fetch(url, {
-    headers: {
-      "Accept": "application/json",
-      "User-Agent": "AgriDecisionAI/1.0"
+async function fetchJson(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    const text = await response.text();
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
     }
-  });
+    return JSON.parse(text);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
-  if (!response.ok) {
-    throw new Error(`CME returned HTTP ${response.status} for ${product.commodity}.`);
+async function fetchProduct(product) {
+  const headers = {
+    "Accept": "application/json, text/plain, */*",
+    "Referer": product.quotePage,
+    "User-Agent": "Mozilla/5.0 AgriDecisionAI/1.0"
+  };
+  const urls = [
+    `https://www.cmegroup.com/CmeWS/mvc/Quotes/Future/${product.productId}/G?isProtected&_t=${Date.now()}`,
+    `https://www.cmegroup.com/CmeWS/mvc/Quotes/Future/${product.productId}/G?_t=${Date.now()}`,
+    `https://www.cmegroup.com/CmeWS/mvc/Quotes/Future/${product.productId}/G`
+  ];
+  const errors = [];
+
+  for (const url of urls) {
+    try {
+      const data = await fetchJson(url, { headers });
+      const quotes = getQuotes(data)
+        .map(quote => normalizeQuote(product, quote))
+        .filter(row => row.contract && (row.last || row.settle || row.priorSettle));
+      if (quotes.length) return quotes.slice(0, 4);
+    } catch (error) {
+      errors.push(error.message);
+    }
   }
 
-  const data = await response.json();
-  const quotes = Array.isArray(data?.quotes) ? data.quotes : [];
-  return quotes.slice(0, 4).map(quote => normalizeQuote(product, quote));
+  throw new Error(`CME did not return usable ${product.commodity} quotes. ${errors.join("; ")}`);
+}
+
+function normalizeYahooQuote(product, quote) {
+  const last = formatNumber(quote.regularMarketPrice);
+  const change = quote.regularMarketChange === undefined ? "" : formatNumber(quote.regularMarketChange);
+  const updatedAt = quote.regularMarketTime
+    ? new Date(quote.regularMarketTime * 1000).toISOString()
+    : "";
+
+  return {
+    commodity: product.commodity,
+    contract: product.contractHint,
+    last,
+    settle: "",
+    priorSettle: "",
+    change,
+    volume: quote.regularMarketVolume ? Number(quote.regularMarketVolume).toLocaleString("en-US") : "",
+    sourceLabel: "Backup",
+    sourceUrl: product.quotePage,
+    updated: updatedAt
+  };
+}
+
+async function fetchBackupQuotes() {
+  const symbols = PRODUCTS.map(product => product.yahooSymbol).join(",");
+  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbols)}`;
+  const data = await fetchJson(url, {
+    headers: {
+      "Accept": "application/json",
+      "User-Agent": "Mozilla/5.0 AgriDecisionAI/1.0"
+    }
+  });
+  const results = data?.quoteResponse?.result || [];
+  return PRODUCTS.map(product => {
+    const quote = results.find(item => item.symbol === product.yahooSymbol);
+    return quote ? normalizeYahooQuote(product, quote) : null;
+  }).filter(Boolean);
 }
 
 module.exports = async function handler(req, res) {
@@ -69,16 +181,29 @@ module.exports = async function handler(req, res) {
   }
 
   const responses = await Promise.allSettled(PRODUCTS.map(fetchProduct));
-  const quotes = responses.flatMap(result => result.status === "fulfilled" ? result.value : []);
+  let quotes = responses.flatMap(result => result.status === "fulfilled" ? result.value : []);
   const errors = responses
     .filter(result => result.status === "rejected")
     .map(result => result.reason?.message || String(result.reason));
 
+  let fallbackUsed = false;
+  if (!quotes.length) {
+    try {
+      quotes = await fetchBackupQuotes();
+      fallbackUsed = quotes.length > 0;
+    } catch (error) {
+      errors.push(`Backup quote feed failed: ${error.message}`);
+    }
+  }
+
   return sendJson(res, 200, {
     quotes,
     errors,
-    note: "Delayed CME Group futures snapshot. Verify directly with CME Group before trading, hedging, or contract decisions.",
-    source: "CME Group",
+    fallbackUsed,
+    note: fallbackUsed
+      ? "CME delayed quotes were unavailable, so a backup delayed futures feed is shown with links back to CME Group. Verify directly with CME Group before trading, hedging, or contract decisions."
+      : "Delayed CME Group futures snapshot. Verify directly with CME Group before trading, hedging, or contract decisions.",
+    source: fallbackUsed ? "Backup delayed futures feed" : "CME Group",
     sourceUrl: "https://www.cmegroup.com/markets/agriculture.html"
   });
 };
