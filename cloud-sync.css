@@ -65,3 +65,80 @@
 .cme-table-shell th {
   white-space: nowrap;
 }
+
+.tools-view {
+  min-height: calc(100vh - 60px);
+  padding-top: 44px;
+  background: #f6f8f1;
+}
+
+.tools-section {
+  max-width: 1280px;
+}
+
+.tools-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 18px;
+}
+
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.tool-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+  background: white;
+  box-shadow: var(--shadow);
+}
+
+.tool-card h3 {
+  margin: 0 0 14px;
+  font-size: 20px;
+}
+
+.tool-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.tool-result {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 8px;
+  background: var(--green-50);
+  border: 1px solid var(--green-200);
+}
+
+.tool-result strong {
+  color: var(--green-900);
+  font-size: 20px;
+}
+
+.tool-result span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.wide-tool {
+  grid-column: 1 / -1;
+}
+
+.benchmark-shell {
+  margin-top: 14px;
+}
+
+@media (max-width: 820px) {
+  .tool-grid,
+  .tool-inputs {
+    grid-template-columns: 1fr;
+  }
+}

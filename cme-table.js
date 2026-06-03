@@ -12,7 +12,10 @@ function ensureCmeTableView() {
     cmeButton.type = "button";
     cmeButton.dataset.appTab = "cme";
     cmeButton.textContent = "CME Group";
-    cmeButton.addEventListener("click", () => cmeButton.closest("details")?.removeAttribute("open"));
+    cmeButton.addEventListener("click", () => {
+      cmeButton.closest("details")?.removeAttribute("open");
+      switchAppTab("cme");
+    });
     const aiButton = menu.querySelector('[data-app-tab="ai"]');
     menu.insertBefore(cmeButton, aiButton || null);
   }
@@ -85,9 +88,12 @@ loadFutures = async function () {
 
 switchAppTab = function (tabName) {
   ensureCmeTableView();
+  if (typeof ensureToolsView === "function") ensureToolsView();
   document.querySelectorAll(".workspace-tab").forEach(button => button.classList.toggle("active", button.dataset.appTab === tabName));
   $("workspace-view").classList.toggle("active", tabName === "workspace");
   $("cme-view").classList.toggle("active", tabName === "cme");
+  const toolsView = document.getElementById("tools-view");
+  if (toolsView) toolsView.classList.toggle("active", tabName === "tools");
   $("ai-view").classList.toggle("active", tabName === "ai");
   $("story-view").classList.toggle("active", tabName === "story");
   if (tabName === "ai") {
@@ -95,6 +101,7 @@ switchAppTab = function (tabName) {
     updateAIContext();
   }
   if (tabName === "cme") loadFutures();
+  if (tabName === "tools" && typeof calculateAllTools === "function") calculateAllTools();
   window.scrollTo({ top: 0, behavior: "smooth" });
 };
 
