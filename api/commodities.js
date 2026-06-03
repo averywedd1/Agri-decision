@@ -9,6 +9,7 @@ function sendJson(res, status, payload) {
 const PRODUCTS = [
   {
     commodity: "Corn",
+    category: "Grains",
     productId: "300",
     yahooSymbol: "ZC=F",
     contractHint: "Corn front month",
@@ -16,6 +17,7 @@ const PRODUCTS = [
   },
   {
     commodity: "Soybeans",
+    category: "Oilseeds",
     productId: "320",
     yahooSymbol: "ZS=F",
     contractHint: "Soybeans front month",
@@ -23,10 +25,95 @@ const PRODUCTS = [
   },
   {
     commodity: "Chicago SRW Wheat",
+    category: "Grains",
     productId: "323",
     yahooSymbol: "ZW=F",
     contractHint: "Wheat front month",
     quotePage: "https://www.cmegroup.com/markets/agriculture/grains/wheat.quotes.html"
+  },
+  {
+    commodity: "KC HRW Wheat",
+    category: "Grains",
+    yahooSymbol: "KE=F",
+    contractHint: "KC wheat front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture/grains/kc-wheat.quotes.html"
+  },
+  {
+    commodity: "Oats",
+    category: "Grains",
+    yahooSymbol: "ZO=F",
+    contractHint: "Oats front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture/grains/oats.quotes.html"
+  },
+  {
+    commodity: "Soybean Meal",
+    category: "Oilseeds",
+    yahooSymbol: "ZM=F",
+    contractHint: "Soybean meal front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture/oilseeds/soybean-meal.quotes.html"
+  },
+  {
+    commodity: "Soybean Oil",
+    category: "Oilseeds",
+    yahooSymbol: "ZL=F",
+    contractHint: "Soybean oil front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture/oilseeds/soybean-oil.quotes.html"
+  },
+  {
+    commodity: "Live Cattle",
+    category: "Livestock",
+    yahooSymbol: "LE=F",
+    contractHint: "Live cattle front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture/livestock/live-cattle.quotes.html"
+  },
+  {
+    commodity: "Feeder Cattle",
+    category: "Livestock",
+    yahooSymbol: "GF=F",
+    contractHint: "Feeder cattle front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture/livestock/feeder-cattle.quotes.html"
+  },
+  {
+    commodity: "Lean Hogs",
+    category: "Livestock",
+    yahooSymbol: "HE=F",
+    contractHint: "Lean hogs front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture/livestock/lean-hogs.quotes.html"
+  },
+  {
+    commodity: "Cotton",
+    category: "Softs",
+    yahooSymbol: "CT=F",
+    contractHint: "Cotton front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture.html"
+  },
+  {
+    commodity: "Sugar",
+    category: "Softs",
+    yahooSymbol: "SB=F",
+    contractHint: "Sugar front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture.html"
+  },
+  {
+    commodity: "Coffee",
+    category: "Softs",
+    yahooSymbol: "KC=F",
+    contractHint: "Coffee front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture.html"
+  },
+  {
+    commodity: "Cocoa",
+    category: "Softs",
+    yahooSymbol: "CC=F",
+    contractHint: "Cocoa front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture.html"
+  },
+  {
+    commodity: "Class III Milk",
+    category: "Dairy",
+    yahooSymbol: "DC=F",
+    contractHint: "Class III milk front month",
+    quotePage: "https://www.cmegroup.com/markets/agriculture/dairy/class-iii-milk.quotes.html"
   }
 ];
 
@@ -79,6 +166,7 @@ function normalizeQuote(product, quote) {
 
   return {
     commodity: product.commodity,
+    category: product.category,
     contract,
     last,
     settle,
@@ -107,6 +195,10 @@ async function fetchJson(url, options = {}) {
 }
 
 async function fetchProduct(product) {
+  if (!product.productId) {
+    throw new Error(`CME product id is not configured for ${product.commodity}.`);
+  }
+
   const headers = {
     "Accept": "application/json, text/plain, */*",
     "Referer": product.quotePage,
@@ -143,6 +235,7 @@ function normalizeYahooQuote(product, quote) {
 
   return {
     commodity: product.commodity,
+    category: product.category,
     contract: pickFirst(quote.shortName, quote.displayName, product.contractHint),
     last,
     settle: "",
@@ -195,6 +288,7 @@ function normalizeYahooChartQuote(product, chart) {
 
   return {
     commodity: product.commodity,
+    category: product.category,
     contract: pickFirst(meta.longName, meta.shortName, product.contractHint),
     last,
     settle: "",
@@ -232,14 +326,24 @@ async function fetchYahooChartQuotes() {
 
 async function fetchBackupQuotes() {
   const errors = [];
+  const quotes = [];
+  const commodities = new Set();
+
   for (const fetcher of [fetchYahooQuoteApi, fetchYahooChartQuotes]) {
     try {
-      const quotes = await fetcher();
-      if (quotes.length) return quotes;
+      const nextQuotes = await fetcher();
+      nextQuotes.forEach(row => {
+        if (!commodities.has(row.commodity)) {
+          commodities.add(row.commodity);
+          quotes.push(row);
+        }
+      });
     } catch (error) {
       errors.push(error.message);
     }
   }
+
+  if (quotes.length) return quotes;
   throw new Error(errors.join(" "));
 }
 
@@ -259,14 +363,23 @@ module.exports = async function handler(req, res) {
     .map(result => result.reason?.message || String(result.reason));
 
   let fallbackUsed = false;
-  if (!quotes.length) {
-    try {
-      quotes = await fetchBackupQuotes();
-      fallbackUsed = quotes.length > 0;
-    } catch (error) {
-      errors.push(`Backup quote feed failed: ${error.message}`);
+  try {
+    const backupQuotes = await fetchBackupQuotes();
+    const cmeCommodities = new Set(quotes.map(row => row.commodity));
+    const missingBackupQuotes = backupQuotes.filter(row => !cmeCommodities.has(row.commodity));
+    if (missingBackupQuotes.length) {
+      quotes = [...quotes, ...missingBackupQuotes];
+      fallbackUsed = true;
     }
+  } catch (error) {
+    errors.push(`Backup quote feed failed: ${error.message}`);
   }
+
+  quotes.sort((a, b) => {
+    const aProduct = PRODUCTS.findIndex(product => product.commodity === a.commodity);
+    const bProduct = PRODUCTS.findIndex(product => product.commodity === b.commodity);
+    return aProduct - bProduct;
+  });
 
   return sendJson(res, 200, {
     quotes,

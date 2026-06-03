@@ -46,3 +46,22 @@
 .account-modal {
   padding: 20px;
 }
+
+.cme-view {
+  min-height: calc(100vh - 60px);
+  padding-top: 44px;
+  background: #f7faf5;
+}
+
+.cme-section {
+  max-width: 1280px;
+}
+
+.cme-table-shell table {
+  min-width: 1080px;
+}
+
+.cme-table-shell td,
+.cme-table-shell th {
+  white-space: nowrap;
+}
