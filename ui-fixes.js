@@ -1,4 +1,35 @@
 (function () {
+  function installLogoStyles() {
+    if (document.getElementById("agri-logo-style")) return;
+    const style = document.createElement("style");
+    style.id = "agri-logo-style";
+    style.textContent = `
+      .brand-logo {
+        display: block;
+        width: 172px;
+        height: 48px;
+        object-fit: contain;
+        object-position: left center;
+      }
+      .brand:has(.brand-logo) {
+        gap: 0;
+        min-width: 172px;
+      }
+      @media (max-width: 640px) {
+        .brand-logo { width: 140px; height: 42px; }
+        .brand:has(.brand-logo) { min-width: 140px; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function applyLogo() {
+    const brand = document.querySelector(".brand");
+    if (!brand || brand.dataset.logoApplied === "true") return;
+    brand.innerHTML = '<img class="brand-logo" src="/agridecision_ai_logo_v2.svg" alt="AgriDecision AI">';
+    brand.dataset.logoApplied = "true";
+  }
+
   function moveExpenseChartToTools() {
     const card = document.getElementById("expense-chart-card");
     const toolsSection = document.querySelector("#tools-view .tools-section");
@@ -50,6 +81,9 @@
   }
 
   function applyUiFixes() {
+    installLogoStyles();
+    applyLogo();
+
     const workspaceMarketWatch = document.getElementById("market-watch");
     if (workspaceMarketWatch) workspaceMarketWatch.remove();
 
