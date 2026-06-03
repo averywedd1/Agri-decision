@@ -1,5 +1,5 @@
 (function () {
-  const scripts = ["/tools.js", "/enhancements.js"];
+  const scripts = ["/cloud-sync-original.js", "/cme-table.js", "/tools.js", "/enhancements.js"];
   const tags = scripts.map(src => `<script src="${src}"></script>`).join("");
 
   function loadScript(src) {
