@@ -9,10 +9,27 @@
     return Boolean(profile.email || profile.name);
   }
 
-  function accountLabels() {
-    return ["account-name", "account-email", "account-password", "account-farm"]
-      .map(id => document.getElementById(id)?.closest("label"))
-      .filter(Boolean);
+  function labelFor(id) {
+    return document.getElementById(id)?.closest("label");
+  }
+
+  function setLabel(id, display) {
+    const label = labelFor(id);
+    if (label) label.style.display = display;
+  }
+
+  function forceSignInMode() {
+    const signInMode = document.getElementById("auth-signin-mode");
+    if (signInMode && !signInMode.classList.contains("active")) signInMode.click();
+    setLabel("account-name", "none");
+    setLabel("account-farm", "none");
+    setLabel("account-email", "flex");
+    setLabel("account-password", "flex");
+    const save = document.getElementById("save-account");
+    if (save) {
+      save.style.display = "inline-flex";
+      save.textContent = "Sign In";
+    }
   }
 
   function showSignedInUi() {
@@ -28,7 +45,7 @@
 
     if (nav && p.name) nav.textContent = `Hi, ${String(p.name).split(" ")[0]}`;
     if (authMode) authMode.style.display = "none";
-    accountLabels().forEach(label => { label.style.display = "none"; });
+    ["account-name", "account-email", "account-password", "account-farm"].forEach(id => setLabel(id, "none"));
     if (save) save.style.display = "none";
     if (signOut) {
       signOut.style.display = "inline-flex";
@@ -49,13 +66,11 @@
     const signInMode = document.getElementById("auth-signin-mode");
     const title = document.getElementById("account-title");
     const help = document.getElementById("account-help");
-    const action = document.getElementById("save-account");
     const status = document.getElementById("account-sync-status");
 
     if (nav) nav.textContent = "Create Account";
     if (signOut) signOut.style.display = "none";
     if (authMode) authMode.style.display = "grid";
-    accountLabels().forEach(label => { label.style.display = "flex"; });
     if (createMode) {
       createMode.hidden = false;
       createMode.classList.remove("active");
@@ -66,12 +81,9 @@
       signInMode.textContent = "Sign In";
     }
     if (title) title.textContent = "Sign in to AgriDecision";
-    if (help) help.textContent = "Sign in to sync your profile, projects, reports, and chat history across devices.";
-    if (action) {
-      action.style.display = "inline-flex";
-      action.textContent = "Sign In";
-    }
-    if (status) status.textContent = "Signed out. Sign in again to sync across devices.";
+    if (help) help.textContent = "Sign in with email and password. Use Create only for a new account.";
+    if (status) status.textContent = "Enter your email and password to sign in.";
+    forceSignInMode();
   }
 
   function refreshAccountUi() {
@@ -80,10 +92,24 @@
   }
 
   function installSignOutFix() {
-    if (window.agriSignOutFixInstalledV2) return;
-    window.agriSignOutFixInstalledV2 = true;
+    if (window.agriSignOutFixInstalledV3) return;
+    window.agriSignOutFixInstalledV3 = true;
 
     document.addEventListener("click", event => {
+      if (event.target.closest?.("#auth-signin-mode")) {
+        setTimeout(forceSignInMode, 0);
+        setTimeout(forceSignInMode, 60);
+      }
+      if (event.target.closest?.("#auth-create-mode")) {
+        setTimeout(() => {
+          setLabel("account-name", "flex");
+          setLabel("account-farm", "flex");
+          setLabel("account-email", "flex");
+          setLabel("account-password", "flex");
+          const save = document.getElementById("save-account");
+          if (save) save.textContent = "Create Account";
+        }, 0);
+      }
       if (!event.target.closest?.("#account-nav-btn")) return;
       setTimeout(refreshAccountUi, 40);
       setTimeout(refreshAccountUi, 250);

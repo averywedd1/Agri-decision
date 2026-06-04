@@ -3,12 +3,16 @@
   let client = null;
   let session = null;
   let configured = false;
-  let authMode = "create";
+  let authMode = "signin";
   let cloudProjectsLoaded = false;
 
   function setCloudStatus(message) {
     const target = document.getElementById("account-sync-status");
     if (target) target.textContent = message;
+  }
+
+  function fieldLabel(id) {
+    return document.getElementById(id)?.closest("label");
   }
 
   function setAuthMode(mode) {
@@ -17,12 +21,16 @@
     document.getElementById("auth-signin-mode")?.classList.toggle("active", mode === "signin");
     const title = document.getElementById("account-title");
     const action = document.getElementById("save-account");
-    const nameLabel = document.getElementById("account-name")?.closest("label");
-    const farmLabel = document.getElementById("account-farm")?.closest("label");
+    const nameLabel = fieldLabel("account-name");
+    const farmLabel = fieldLabel("account-farm");
+    const emailLabel = fieldLabel("account-email");
+    const passwordLabel = fieldLabel("account-password");
     if (title) title.textContent = mode === "signin" ? "Sign in to AgriDecision" : "Create your AgriDecision account";
     if (action) action.textContent = mode === "signin" ? "Sign In" : "Create Account";
     if (nameLabel) nameLabel.style.display = mode === "signin" ? "none" : "flex";
     if (farmLabel) farmLabel.style.display = mode === "signin" ? "none" : "flex";
+    if (emailLabel) emailLabel.style.display = "flex";
+    if (passwordLabel) passwordLabel.style.display = "flex";
   }
 
   function currentProject() {
@@ -52,12 +60,16 @@
           cloudProjectsLoaded = false;
           applyProfile();
           renderProjects();
+          setAuthMode("signin");
           setCloudStatus("Signed out. Local saves are still available on this device.");
         }
       });
 
       if (session?.user) await handleSignedIn(session.user);
-      else setCloudStatus("Cloud sync is ready. Create an account or sign in.");
+      else {
+        setAuthMode("signin");
+        setCloudStatus("Cloud sync is ready. Sign in or create an account.");
+      }
     } catch (error) {
       configured = false;
       setCloudStatus(`Cloud sync could not start: ${error.message}`);
@@ -170,13 +182,13 @@
   const localOpenAccount = openAccount;
   openAccount = function () {
     localOpenAccount();
-    setAuthMode(session?.user ? "signin" : authMode);
+    setAuthMode(session?.user ? "signin" : "signin");
     const password = document.getElementById("account-password");
     const signOut = document.getElementById("sign-out-account");
     if (password) password.value = "";
     if (signOut) signOut.style.display = session?.user ? "inline-flex" : "none";
     setCloudStatus(configured
-      ? session?.user ? `Signed in as ${session.user.email}.` : "Cloud sync is ready. Create an account or sign in."
+      ? session?.user ? `Signed in as ${session.user.email}.` : "Cloud sync is ready. Sign in or create an account."
       : "Cloud sync is not configured yet. This will save locally on this device.");
   };
 
@@ -270,12 +282,13 @@
       if (client) await client.auth.signOut();
       session = null;
       cloudProjectsLoaded = false;
+      setAuthMode("signin");
       setCloudStatus("Signed out. Local browser saves are still available on this device.");
       applyProfile();
       renderProjects();
       closeAccount();
     });
-    setAuthMode("create");
+    setAuthMode("signin");
     initCloudSync();
   });
 }());
