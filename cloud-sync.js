@@ -1,24 +1,36 @@
 (function () {
-  const scripts = ["/cloud-sync-original.js", "/cme-table.js", "/tools.js", "/enhancements.js", "/ui-fixes.js", "/chat-events-fix.js", "/logo-update.js", "/live-fixes.js", "/field-boundary-only.js", "/sign-out-fix.js", "/product-upgrades.js", "/decision-support.js"];
-  const tags = scripts.map(src => `<script src="${src}"></script>`).join("");
+  const scripts = [
+    "/cloud-sync-original.js",
+    "/cme-table.js",
+    "/tools.js",
+    "/enhancements.js",
+    "/ui-fixes.js",
+    "/chat-events-fix.js",
+    "/logo-update.js",
+    "/live-fixes.js",
+    "/field-boundary-only.js",
+    "/sign-out-fix.js",
+    "/product-upgrades.js",
+    "/decision-support.js",
+    "/current-improvements.js"
+  ];
 
   function loadScript(src) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const script = document.createElement("script");
       script.src = src;
-      script.async = false;
+      script.defer = true;
       script.onload = resolve;
-      script.onerror = reject;
+      script.onerror = resolve;
       document.head.appendChild(script);
     });
   }
 
-  if (document.readyState === "loading") {
-    document.write(tags);
-    return;
+  async function loadAll() {
+    for (const src of scripts) {
+      await loadScript(src);
+    }
   }
 
-  scripts
-    .reduce((chain, src) => chain.then(() => loadScript(src)), Promise.resolve())
-    .catch(error => console.error("AgriDecision enhancement loader failed", error));
+  loadAll();
 }());
