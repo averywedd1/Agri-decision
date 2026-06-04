@@ -15,6 +15,32 @@
       .replaceAll("'", "&#039;");
   }
 
+  function cleanPoint(point) {
+    const lat = Number(point?.lat);
+    const lng = Number(point?.lng);
+    return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+  }
+
+  function orderBoundaryPoints(points) {
+    const cleaned = (Array.isArray(points) ? points : []).map(cleanPoint).filter(Boolean);
+    if (cleaned.length < 3) return cleaned;
+    const center = cleaned.reduce((sum, point) => ({
+      lat: sum.lat + point.lat,
+      lng: sum.lng + point.lng
+    }), { lat: 0, lng: 0 });
+    center.lat /= cleaned.length;
+    center.lng /= cleaned.length;
+    const lngScale = Math.max(0.2, Math.cos(center.lat * Math.PI / 180));
+    return cleaned
+      .map((point, index) => ({
+        point,
+        index,
+        angle: Math.atan2(point.lat - center.lat, (point.lng - center.lng) * lngScale)
+      }))
+      .sort((a, b) => a.angle - b.angle || a.index - b.index)
+      .map(item => item.point);
+  }
+
   function readPolygons() {
     try { return JSON.parse(localStorage.getItem(POLYGON_KEY) || "[]").filter(Boolean); }
     catch { return []; }
@@ -25,6 +51,7 @@
   }
 
   function acresFromPoints(points) {
+    points = orderBoundaryPoints(points);
     if (!Array.isArray(points) || points.length < 3) return 0;
     const avgLat = points.reduce((sum, point) => sum + Number(point.lat || 0), 0) / points.length;
     const metersLat = 111320;
@@ -41,9 +68,10 @@
   function polygonSummary(polygons = readPolygons()) {
     if (!polygons.length) return "No field boundaries drawn yet.";
     return polygons.map(poly => {
-      const acres = poly.acres || acresFromPoints(poly.points || []).toFixed(1);
-      const corners = (poly.points || []).map(point => `${Number(point.lat).toFixed(5)}, ${Number(point.lng).toFixed(5)}`).join("; ");
-      return `${poly.name}: ${acres} acres boundary with ${poly.points?.length || 0} points. Coordinates: ${corners}${poly.notes ? ` Notes: ${poly.notes}` : ""}`;
+      const points = orderBoundaryPoints(poly.points || []);
+      const acres = poly.acres || acresFromPoints(points).toFixed(1);
+      const corners = points.map(point => `${Number(point.lat).toFixed(5)}, ${Number(point.lng).toFixed(5)}`).join("; ");
+      return `${poly.name}: ${acres} acres boundary with ${points.length} points. Coordinates: ${corners}${poly.notes ? ` Notes: ${poly.notes}` : ""}`;
     }).join("\n");
   }
 
@@ -128,7 +156,7 @@
       <div class="section boundary-section">
         <div class="section-kicker">Field Map</div>
         <h2>Draw field boundaries</h2>
-        <p class="section-lead">This map is boundary-only. Start drawing, click around the actual outside edge of the field, then finish and save the shape.</p>
+        <p class="section-lead">This map automatically fills the field boundary from the points you select, even if the points are not clicked in perfect order.</p>
         <div class="boundary-layout">
           <div class="boundary-panel">
             <p class="boundary-status" id="boundary-status">Start Boundary, then click points around the field edge.</p>
@@ -174,7 +202,8 @@
         if (!drawing) return;
         draft.push({ lat: event.latlng.lat, lng: event.latlng.lng });
         renderMap();
-        setStatus(`${draft.length} boundary point${draft.length === 1 ? "" : "s"} selected. Keep clicking around the field edge, then finish.`);
+        const filled = draft.length >= 3 ? " The boundary preview is filled automatically." : "";
+        setStatus(`${draft.length} boundary point${draft.length === 1 ? "" : "s"} selected.${filled}`);
       });
       setTimeout(() => map.invalidateSize(), 120);
       renderMap(true);
@@ -186,7 +215,7 @@
     layer.clearLayers();
     const shapes = [];
     readPolygons().forEach(poly => {
-      const points = poly.points || [];
+      const points = orderBoundaryPoints(poly.points || []);
       if (points.length < 3) return;
       const shape = window.L.polygon(points.map(point => [point.lat, point.lng]), {
         color: "#0F6E56",
@@ -207,7 +236,16 @@
         }).bindTooltip(String(index + 1), { permanent: true, direction: "top" }).addTo(layer);
         shapes.push(marker);
       });
-      if (draft.length > 1) {
+      if (draft.length >= 3) {
+        const previewPoints = orderBoundaryPoints(draft);
+        shapes.push(window.L.polygon(previewPoints.map(point => [point.lat, point.lng]), {
+          color: "#1A2B22",
+          weight: 3,
+          dashArray: "6 5",
+          fillColor: "#5DCAA5",
+          fillOpacity: 0.18
+        }).addTo(layer));
+      } else if (draft.length > 1) {
         shapes.push(window.L.polyline(draft.map(point => [point.lat, point.lng]), {
           color: "#1A2B22",
           weight: 3,
@@ -249,7 +287,7 @@
     drawing = true;
     draft = [];
     renderMap();
-    setStatus("Boundary mode is on. Click points around the outside edge of the field.");
+    setStatus("Boundary mode is on. Click the outside points of the field in any order.");
   }
 
   function clearBoundary() {
@@ -264,10 +302,11 @@
       setStatus("Click at least 3 points around the field edge before finishing.");
       return;
     }
+    const orderedDraft = orderBoundaryPoints(draft);
     const defaultName = `Field Boundary ${readPolygons().length + 1}`;
     const name = prompt("Boundary name", defaultName);
     if (name === null) return;
-    const calculated = acresFromPoints(draft).toFixed(1);
+    const calculated = acresFromPoints(orderedDraft).toFixed(1);
     const acres = prompt("Acres for this field", calculated);
     if (acres === null) return;
     const polygons = readPolygons();
@@ -275,7 +314,7 @@
       id: `boundary-${Date.now()}-${Math.random().toString(16).slice(2)}`,
       name: name.trim() || defaultName,
       acres: acres.trim() || calculated,
-      points: draft.map(point => ({ lat: point.lat, lng: point.lng })),
+      points: orderedDraft.map(point => ({ lat: point.lat, lng: point.lng })),
       notes: "Selected as a field boundary on the map",
       updatedAt: new Date().toISOString()
     });
@@ -284,7 +323,7 @@
     draft = [];
     renderList();
     renderMap(true);
-    setStatus("Field boundary saved with the current project.");
+    setStatus("Field boundary saved with the points auto-filled into one shape.");
     if (typeof saveProject === "function") saveProject({ silent: true, skipPrompt: true });
   }
 
@@ -293,7 +332,7 @@
       const baseProjectSnapshot = projectSnapshot;
       projectSnapshot = function (existing = {}) {
         const snapshot = baseProjectSnapshot(existing);
-        snapshot.fieldPolygons = readPolygons();
+        snapshot.fieldPolygons = readPolygons().map(poly => ({ ...poly, points: orderBoundaryPoints(poly.points || []) }));
         snapshot.fieldMap = [];
         return snapshot;
       };
@@ -305,7 +344,9 @@
         const result = baseLoadProject(projectId);
         try {
           const project = getStore().projects.find(item => item.id === projectId);
-          if (Array.isArray(project?.fieldPolygons)) savePolygons(project.fieldPolygons);
+          if (Array.isArray(project?.fieldPolygons)) {
+            savePolygons(project.fieldPolygons.map(poly => ({ ...poly, points: orderBoundaryPoints(poly.points || []) })));
+          }
         } catch {}
         renderList();
         renderMap(true);
