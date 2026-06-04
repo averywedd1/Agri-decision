@@ -33,11 +33,11 @@
     const icon = document.createElement("link");
     icon.rel = "icon";
     icon.type = "image/svg+xml";
-    icon.href = "/agridecision_icon.svg?v=4";
+    icon.href = "/agridecision_icon.svg?v=5";
     document.head.appendChild(icon);
     const apple = document.createElement("link");
     apple.rel = "apple-touch-icon";
-    apple.href = "/agridecision_icon.svg?v=4";
+    apple.href = "/agridecision_icon.svg?v=5";
     document.head.appendChild(apple);
   }
 
@@ -47,8 +47,8 @@
     installLogoUpdateStyles();
     installFavicon();
     brand.classList.add("agri-logo-brand");
-    brand.innerHTML = '<img class="agri-brand-lockup" src="/agridecision_logo.svg?v=4" alt="AgriDecision AI">';
-    brand.dataset.logoApplied = "concept-d";
+    brand.innerHTML = '<img class="agri-brand-lockup" src="/agridecision_logo.svg?v=5" alt="AgriDecision AI">';
+    brand.dataset.logoApplied = "concept-d-light-header";
   }
 
   if (document.readyState === "loading") {
