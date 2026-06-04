@@ -13,7 +13,8 @@
     "/product-upgrades.js",
     "/decision-support.js",
     "/current-improvements.js",
-    "/calendar-data-fix.js"
+    "/calendar-data-fix.js",
+    "/experience-polish.js"
   ];
 
   function loadScript(src) {
