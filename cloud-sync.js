@@ -12,7 +12,8 @@
     "/sign-out-fix.js",
     "/product-upgrades.js",
     "/decision-support.js",
-    "/current-improvements.js"
+    "/current-improvements.js",
+    "/calendar-data-fix.js"
   ];
 
   function loadScript(src) {
