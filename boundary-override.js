@@ -36,9 +36,70 @@
     return Math.abs(area / 2) / 4046.8564224;
   }
 
+  function polygonSummary() {
+    const polygons = readPolygons();
+    if (!polygons.length) return "No field boundaries drawn yet.";
+    return polygons.map(poly => {
+      const acres = poly.acres || acresFromPoints(poly.points || []).toFixed(1);
+      const corners = (poly.points || []).map(point => `${Number(point.lat).toFixed(5)}, ${Number(point.lng).toFixed(5)}`).join("; ");
+      return `${poly.name}: ${acres} acres boundary with ${poly.points?.length || 0} points. Coordinates: ${corners}`;
+    }).join("\n");
+  }
+
   function setStatus(message) {
     const target = document.getElementById("field-boundary-status") || document.getElementById("field-map-status");
     if (target) target.textContent = message;
+  }
+
+  function installStyles() {
+    if (document.getElementById("agri-boundary-override-style")) return;
+    const style = document.createElement("style");
+    style.id = "agri-boundary-override-style";
+    style.textContent = `
+      .field-boundary-tools {
+        display: grid;
+        gap: 10px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #eef6ea;
+      }
+      .field-boundary-tools strong { color: var(--green-900); }
+      .field-boundary-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+      .field-boundary-list { display: grid; gap: 10px; }
+      .field-boundary-item {
+        display: grid;
+        gap: 4px;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #ffffff;
+      }
+      .field-boundary-item small { color: var(--muted); }
+      .boundary-help { margin: 0; color: var(--muted); font-size: 13px; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function ensureUi() {
+    installStyles();
+    const panel = document.querySelector(".field-map-panel");
+    if (!panel || document.getElementById("field-boundary-tools")) return;
+    const tools = document.createElement("div");
+    tools.className = "field-boundary-tools";
+    tools.id = "field-boundary-tools";
+    tools.innerHTML = `
+      <strong>Field Boundary</strong>
+      <p class="boundary-help" id="field-boundary-status">Start boundary mode, click around the field edge, then finish the shape.</p>
+      <div class="field-boundary-actions">
+        <button class="primary-btn" type="button" id="start-field-boundary">Start Boundary</button>
+        <button class="ghost-btn" type="button" id="finish-field-boundary">Finish Boundary</button>
+        <button class="ghost-btn" type="button" id="clear-field-boundary">Clear Points</button>
+      </div>
+      <div class="field-boundary-list" id="field-boundary-list"></div>
+    `;
+    panel.insertBefore(tools, document.getElementById("field-list") || null);
+    renderList();
   }
 
   function ensureLayer() {
@@ -112,7 +173,7 @@
     window.agriBoundaryDrawing = true;
     draft = [];
     render();
-    setStatus("Boundary mode is on. Now click points around the outside edge of the field. The circle prompt is disabled while this is on.");
+    setStatus("Boundary mode is on. Click points around the outside edge of the field.");
   }
 
   function clearBoundary() {
@@ -127,11 +188,12 @@
       setStatus("Click at least 3 points around the field edge before finishing.");
       return;
     }
+    const promptFn = window.nativeAgriPrompt || window.prompt.bind(window);
     const defaultName = `Field Boundary ${readPolygons().length + 1}`;
-    const name = window.nativeAgriPrompt("Boundary name", defaultName);
+    const name = promptFn("Boundary name", defaultName);
     if (name === null) return;
     const calculated = acresFromPoints(draft).toFixed(1);
-    const acres = window.nativeAgriPrompt("Acres for this field", calculated);
+    const acres = promptFn("Acres for this field", calculated);
     if (acres === null) return;
     const polygons = readPolygons();
     polygons.push({
@@ -187,9 +249,7 @@
     if (window.nativeAgriPrompt) return;
     window.nativeAgriPrompt = window.prompt.bind(window);
     window.prompt = function (message, fallback) {
-      if (window.agriBoundaryDrawing && /field name/i.test(String(message || ""))) {
-        return null;
-      }
+      if (window.agriBoundaryDrawing && /field name/i.test(String(message || ""))) return null;
       return window.nativeAgriPrompt(message, fallback);
     };
   }
@@ -235,12 +295,20 @@
       };
       loadProject.isAgriBoundaryOverrideFix = true;
     }
+    if (typeof buildContext === "function" && !buildContext.isAgriBoundaryOverrideFix) {
+      const baseBuildContext = buildContext;
+      buildContext = function (data) {
+        return `${baseBuildContext(data)}\n\nMapped field boundaries:\n${polygonSummary()}`;
+      };
+      buildContext.isAgriBoundaryOverrideFix = true;
+    }
   }
 
   function install() {
     installPromptGuard();
     installButtonOverride();
     installPersistence();
+    ensureUi();
     patchLeaflet();
     renderList();
     render();
