@@ -1,5 +1,5 @@
 (function () {
-  const scripts = ["/cloud-sync-original.js", "/cme-table.js", "/tools.js", "/enhancements.js", "/ui-fixes.js", "/chat-events-fix.js", "/logo-update.js", "/live-fixes.js", "/field-boundary-only.js", "/sign-out-fix.js", "/product-upgrades.js"];
+  const scripts = ["/cloud-sync-original.js", "/cme-table.js", "/tools.js", "/enhancements.js", "/ui-fixes.js", "/chat-events-fix.js", "/logo-update.js", "/live-fixes.js", "/field-boundary-only.js", "/sign-out-fix.js", "/product-upgrades.js", "/decision-support.js"];
   const tags = scripts.map(src => `<script src="${src}"></script>`).join("");
 
   function loadScript(src) {
