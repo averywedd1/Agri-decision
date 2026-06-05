@@ -18,7 +18,8 @@
     "/experience-polish.js",
     "/agri-context.js",
     "/qc-fixes.js",
-    "/tooltip-tools-fix.js"
+    "/tooltip-tools-fix.js",
+    "/auth-account-guard.js"
   ];
 
   function loadScript(src) {
