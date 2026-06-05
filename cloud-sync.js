@@ -1,5 +1,6 @@
 (function () {
   const scripts = [
+    "/overlap-fix.js",
     "/cloud-sync-original.js",
     "/cme-table.js",
     "/tools.js",
@@ -14,8 +15,7 @@
     "/decision-support.js",
     "/current-improvements.js",
     "/calendar-data-fix.js",
-    "/experience-polish.js",
-    "/overlap-fix.js"
+    "/experience-polish.js"
   ];
 
   function loadScript(src) {
