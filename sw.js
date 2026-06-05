@@ -1,4 +1,4 @@
-const CACHE_NAME = "agridecision-shell-v9";
+const CACHE_NAME = "agridecision-shell-v10";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -9,7 +9,6 @@ const APP_SHELL = [
   "/qc-fixes.js",
   "/agri-context.js",
   "/tooltip-tools-fix.js",
-  "/auth-account-guard.js",
   "/farm-ui-polish.js",
   "/mobile-scroll-fix.js",
   "/cloud-sync-repair.js",
