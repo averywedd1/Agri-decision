@@ -39,6 +39,23 @@ function stateKey(region = "") {
   return Object.keys(STATE_POINTS).find(key => lower.includes(key.replace(/([a-z])([A-Z])/g, "$1 $2")) || lower.replace(/[^a-z]/g, "").includes(key));
 }
 
+function nearestStateKey(lat, lon) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return "";
+  let bestKey = "";
+  let bestDistance = Infinity;
+  Object.entries(STATE_POINTS).forEach(([key, point]) => {
+    const [stateLat, stateLon] = point;
+    const latDistance = lat - stateLat;
+    const lonDistance = (lon - stateLon) * Math.max(0.2, Math.cos(lat * Math.PI / 180));
+    const distance = latDistance * latDistance + lonDistance * lonDistance;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestKey = key;
+    }
+  });
+  return bestKey;
+}
+
 function plantingWindow(key, commodities = "") {
   const crop = commodities.toLowerCase();
   if (/wheat/.test(crop) && /kansas|oklahoma|texas|nebraska|southdakota|northdakota/.test(key)) return "Wheat window: fall planting / early-summer harvest";
@@ -64,13 +81,16 @@ module.exports = async function handler(req, res) {
 
   const region = req.query?.region || "";
   const commodities = req.query?.commodities || "";
-  const key = stateKey(region);
-  if (!key || !STATE_POINTS[key]) return sendJson(res, 200, {
+  const requestedLat = Number(req.query?.lat);
+  const requestedLon = Number(req.query?.lon);
+  const hasCoordinates = Number.isFinite(requestedLat) && Number.isFinite(requestedLon);
+  const key = stateKey(region) || (hasCoordinates ? nearestStateKey(requestedLat, requestedLon) : "");
+  if ((!key || !STATE_POINTS[key]) && !hasCoordinates) return sendJson(res, 200, {
     ok: false,
-    error: "Enter a U.S. state or region to load weather context."
+    error: "Enter a U.S. state or draw a field map boundary to load weather context."
   });
 
-  const [lat, lon] = STATE_POINTS[key];
+  const [lat, lon] = hasCoordinates ? [requestedLat, requestedLon] : STATE_POINTS[key];
   try {
     const point = await getJson(`https://api.weather.gov/points/${lat.toFixed(4)},${lon.toFixed(4)}`);
     const forecastUrl = point?.properties?.forecast;
@@ -87,19 +107,21 @@ module.exports = async function handler(req, res) {
       ok: true,
       region,
       location: place?.city ? `${place.city}, ${place.state}` : region,
-      source: "National Weather Service forecast",
+      source: req.query?.source === "field map" ? "National Weather Service forecast from field map" : "National Weather Service forecast",
       sourceUrl: "https://api.weather.gov",
       plantingWindow: plantingWindow(key, commodities),
+      coordinates: { lat, lon },
       riskLevel,
       summary: periods[0]?.forecast || "Local forecast loaded.",
-      periods
+      periods,
     });
   } catch (error) {
     return sendJson(res, 200, {
       ok: true,
       region,
-      source: "Regional planning fallback",
+      source: req.query?.source === "field map" ? "Regional planning fallback from field map" : "Regional planning fallback",
       plantingWindow: plantingWindow(key, commodities),
+      coordinates: { lat, lon },
       riskLevel: "Weather feed unavailable",
       summary: `NWS forecast could not be loaded (${error.message}). Use local NWS/extension guidance before field operations.`,
       periods: []

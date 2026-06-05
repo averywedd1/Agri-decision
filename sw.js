@@ -1,4 +1,4 @@
-const CACHE_NAME = "agridecision-shell-v3";
+const CACHE_NAME = "agridecision-shell-v4";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -7,13 +7,14 @@ const APP_SHELL = [
   "/app.js",
   "/cloud-sync.js",
   "/qc-fixes.js",
+  "/agri-context.js",
   "/agridecision_icon.svg",
   "/agridecision_logo.svg",
   "/manifest.webmanifest"
 ];
 
 self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).catch(() => null));
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).catch(() => {}));
   self.skipWaiting();
 });
 
@@ -27,19 +28,17 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const request = event.request;
   if (request.method !== "GET") return;
-
-  if (request.mode === "navigate") {
-    event.respondWith(fetch(request).catch(() => caches.match("/index.html")));
-    return;
-  }
-
-  if (new URL(request.url).origin !== location.origin) return;
+  const url = new URL(request.url);
+  if (url.origin !== location.origin) return;
+  if (url.pathname.startsWith("/api/")) return;
 
   event.respondWith(
-    caches.match(request).then(cached => cached || fetch(request).then(response => {
-      const copy = response.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(request, copy)).catch(() => null);
-      return response;
-    }).catch(() => cached))
+    fetch(request)
+      .then(response => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(request, copy)).catch(() => {});
+        return response;
+      })
+      .catch(() => caches.match(request).then(cached => cached || caches.match("/index.html")))
   );
 });

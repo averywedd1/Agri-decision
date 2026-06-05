@@ -38,6 +38,7 @@ module.exports = async function handler(req, res) {
 
   const region = String(req.query?.region || "");
   const commodities = String(req.query?.commodities || "");
+  const fromMap = req.query?.source === "field map";
   const basisRegion = REGIONAL_BASIS.find(item => item.match.test(region)) || {
     label: region || "National starter range",
     corn: "-45 to -15 cents",
@@ -59,7 +60,7 @@ module.exports = async function handler(req, res) {
     ok: true,
     region,
     rows,
-    source: `Regional basis guide for ${basisRegion.label}`,
+    source: `Regional basis guide for ${basisRegion.label}${fromMap ? " from field map" : ""}`,
     sourceUrl: "https://www.ams.usda.gov/market-news",
     note: "Planning ranges are a starting point. Local elevator bids, freight, delivery period, and grain quality determine actual cash price."
   });
