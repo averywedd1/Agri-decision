@@ -1,15 +1,9 @@
 (function () {
   const scripts = [
     "/overlap-fix.js",
-    "/cloud-sync-original.js",
     "/tools.js",
     "/enhancements.js",
-    "/ui-fixes.js",
-    "/chat-events-fix.js",
-    "/logo-update.js",
-    "/live-fixes.js",
-    "/field-boundary-only.js",
-    "/sign-out-fix.js",
+    "/auth-account-guard.js",
     "/product-upgrades.js",
     "/decision-support.js",
     "/current-improvements.js",
@@ -20,7 +14,8 @@
     "/tooltip-tools-fix.js",
     "/farm-ui-polish.js",
     "/mobile-scroll-fix.js",
-    "/cloud-sync-repair.js"
+    "/cloud-sync-repair.js",
+    "/qc-pass-fixes.js"
   ];
 
   function loadScript(src) {
