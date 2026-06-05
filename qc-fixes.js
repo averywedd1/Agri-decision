@@ -24,7 +24,6 @@
       #three-step-explainer,
       #demo-onboarding,
       #experience-preview,
-      #regional-context-grid,
       #pwa-install-card,
       #farm-form,
       #form-stepper,
@@ -47,19 +46,6 @@
       }
       #experience-preview {
         align-items: stretch;
-      }
-      #regional-context-grid {
-        margin-top: 18px !important;
-        margin-bottom: 18px !important;
-      }
-      #regional-context-grid::before {
-        content: "Weather and local market context";
-        grid-column: 1 / -1;
-        color: var(--green-700);
-        font-size: 13px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
       }
       .regional-context-card {
         min-height: 190px;
@@ -98,7 +84,7 @@
       #ai-view .ai-combo-card h3 {
         color: var(--green-900) !important;
       }
-      #ai-view .ai-combo-card .chatbot-header small,
+      #ai-view .ai-combo-card h.chatbot-header small,
       #ai-view .ai-combo-card small {
         color: var(--muted) !important;
       }
@@ -163,15 +149,28 @@
     document.head.appendChild(style);
   }
 
-  function moveWeatherPanelUp() {
-    const dataSection = byId("data-entry");
+  function keepWeatherPanelInTools() {
     const grid = byId("regional-context-grid");
-    if (!dataSection || !grid) return;
-    const lead = dataSection.querySelector(".section-lead");
-    const anchor = byId("three-step-explainer") || byId("pwa-install-card") || dataSection.querySelector(".settings-bar");
-    if (anchor && grid.previousElementSibling !== lead) {
-      dataSection.insertBefore(grid, anchor);
-    }
+    const toolsSection = document.querySelector("#tools-view .tools-section");
+    if (!grid || !toolsSection || toolsSection.contains(grid)) return;
+    const anchor = toolsSection.querySelector(".tool-grid");
+    toolsSection.insertBefore(grid, anchor || null);
+  }
+
+  function removeStrayWeatherPanelsFromFarmEntry() {
+    const dataSection = byId("data-entry");
+    if (!dataSection) return;
+    dataSection.querySelectorAll("#regional-context-grid").forEach(grid => {
+      const toolsSection = document.querySelector("#tools-view .tools-section");
+      if (!toolsSection) return;
+      const anchor = toolsSection.querySelector(".tool-grid");
+      toolsSection.insertBefore(grid, anchor || null);
+    });
+  }
+
+  function moveWeatherPanelUp() {
+    keepWeatherPanelInTools();
+    removeStrayWeatherPanelsFromFarmEntry();
   }
 
   function improveWeatherEmptyState() {
@@ -181,7 +180,7 @@
     if (source && /Uses the state/i.test(source.textContent || "")) {
       source.textContent = "Enter State / Region in the farm profile and this fills automatically.";
     }
-    if (weather && /Enter a state or region/i.test(weather.textContent || "")) {
+   if (weather && /Enter a state or region/i.test(weather.textContent || "")) {
       weather.innerHTML = "<p><strong>Weather appears here.</strong> Add a State / Region below, such as Iowa, and AgriDecision will load the local National Weather Service outlook.</p>";
     }
     if (basis && /Enter commodities and a region/i.test(basis.textContent || "")) {
