@@ -272,13 +272,19 @@ ${basis}`.trim();
   }
 
   function bindInputs() {
+    let refreshTimer = null;
+    const queueRefresh = () => {
+      window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => {
+        refreshWeather(false);
+        refreshBasis(false);
+      }, 650);
+    };
     document.querySelectorAll("#state, #commodities, #farm-type").forEach(input => {
       if (input.dataset.regionalContextBound === "true") return;
       input.dataset.regionalContextBound = "true";
-      input.addEventListener("change", () => {
-        refreshWeather(false);
-        refreshBasis(false);
-      });
+      input.addEventListener("change", queueRefresh);
+      input.addEventListener("input", queueRefresh);
     });
   }
 
