@@ -25,6 +25,7 @@
         </summary>
         <div class="menu-panel" id="site-menu-panel">
           <button class="workspace-tab active" type="button" data-app-tab="workspace" onclick="this.closest('details').removeAttribute('open')">Farm Workspace</button>
+          <button class="workspace-tab" type="button" data-app-tab="cme" onclick="this.closest('details').removeAttribute('open')">CME Group</button>
           <button class="workspace-tab" type="button" data-app-tab="ai" onclick="this.closest('details').removeAttribute('open')">AgriDecision AI</button>
           <button class="workspace-tab" type="button" data-app-tab="story" onclick="this.closest('details').removeAttribute('open')">Story</button>
         </div>
@@ -56,17 +57,17 @@
 
   <div class="app-view active" id="workspace-view">
   <header class="hero" id="home">
-    <div class="hero-badge">AI-powered farm intelligence</div>
-    <h1>Your farm, <em>analyzed</em><br>like a Fortune 500</h1>
-    <p>Enter your operation's numbers. Get lender-grade financials, risk analysis, investment strategy, and follow-up AI advice in one workspace.</p>
-    <a class="primary-btn hero-cta" href="#data-entry">Start your analysis</a>
+    <div class="hero-badge">Farm decision support</div>
+    <h1>Know your numbers<br><em>before your lender does</em></h1>
+    <p>Turn acres, yields, costs, debt, and price risk into a lender-ready plan you can use before a loan meeting, equipment decision, or marketing call.</p>
+    <a class="primary-btn hero-cta" href="#data-entry">Start my farm analysis</a>
   </header>
 
   <main>
     <section class="section" id="features">
       <div class="section-kicker">What You Get</div>
-      <h2>From raw numbers to boardroom-ready analysis</h2>
-      <p class="section-lead">One form becomes a practical business report with scenario planning, capital decisions, and next steps.</p>
+      <h2>From farm numbers to lender-ready decisions</h2>
+      <p class="section-lead">One workspace turns the numbers you already manage into break-even, cash-flow, risk, and next-step guidance.</p>
       <div class="feature-grid">
         <article><span>01</span><h3>Financial Deep Dive</h3><p>Break-even, gross margin, cost per acre, DSCR, NPV, IRR, and cash-flow pressure.</p></article>
         <article><span>02</span><h3>Risk & Scenarios</h3><p>Stress test yield, commodity price, input cost, interest rate, and debt exposure.</p></article>
@@ -75,35 +76,22 @@
       </div>
     </section>
 
-    <section class="section" id="market-watch">
-      <div class="section-kicker">CME Market Watch</div>
-      <h2>Commodity futures snapshot</h2>
-      <p class="section-lead">Delayed futures data for major ag commodities. Always verify with CME Group before trading or hedging.</p>
-      <div class="table-shell">
-        <table>
-          <thead><tr><th>Commodity</th><th>Contract</th><th>Last</th><th>Change</th><th>Volume</th><th>Source</th></tr></thead>
-          <tbody id="futures-body"><tr><td colspan="6">Loading futures...</td></tr></tbody>
-        </table>
-      </div>
-      <p class="fineprint" id="futures-note">Market data is delayed and should be checked directly with CME Group before trading or hedging decisions.</p>
-    </section>
-
     <section class="section data-section" id="data-entry">
       <div class="section-kicker">Step 1</div>
       <h2>Enter your farm data</h2>
-      <p class="section-lead">Fill in what you know. The more detail you provide, the sharper the analysis.</p>
+      <p class="section-lead">Start blank or load the demo farm to see what a completed analysis looks like.</p>
 
       <div class="settings-bar">
-        <label>AI Provider
+        <label>AI Advisor
           <select id="ai-provider">
-            <option value="">Loading configured AIs...</option>
+            <option value="">AgriDecision AI</option>
           </select>
         </label>
         <div class="custom-provider-fields" id="custom-provider-fields">
           <input id="custom-endpoint" type="url" placeholder="Custom endpoint">
           <input id="custom-model" type="text" placeholder="Custom model">
         </div>
-        <small id="provider-help">API keys are read from Vercel environment variables. No key is typed into or stored in the browser.</small>
+        <small id="provider-help" hidden></small>
       </div>
 
       <div class="project-manager">
@@ -115,29 +103,31 @@
           <button class="ghost-btn" type="button" id="save-project">Save Project</button>
           <button class="ghost-btn danger" type="button" id="delete-project">Delete</button>
         </div>
-        <p id="project-status">Create an account profile, then save separate farms, scenarios, or lender packages as projects.</p>
+        <p id="project-status">Save a local draft now, or create an account to sync projects across devices.</p>
       </div>
+
+      <p class="guest-save-explainer" id="privacy-note">Your farm financials stay private to your browser unless you sign in. Signed-in projects sync only to your own account.</p>
 
       <form id="farm-form">
         <div class="form-grid">
           <fieldset>
             <legend>Operation Profile</legend>
-            <label>Farm / Business Name<input id="farm-name" type="text" placeholder="Sunrise Grain LLC"></label>
-            <label>Farm Type<select id="farm-type"><option>Row Crops (corn/soy)</option><option>Wheat / Small Grains</option><option>Cotton</option><option>Dairy</option><option>Beef Cattle</option><option>Mixed Operation</option><option>Specialty Crops</option></select></label>
-            <label>State / Region<input id="state" type="text" placeholder="Iowa, Central IL"></label>
-            <label>Total Acres / Herd Size<input id="total-acres" type="number" placeholder="2400"></label>
+            <label>Farm / Business Name<input id="farm-name" type="text" placeholder="Miller Family Farms"></label>
+            <label>Farm Type<select id="farm-type"><option>Row Crops (corn/soy)</option><option>Wheat / Small Grains</option><option>Cotton</option><option>Dairy</option><option>Beef Cattle</option><option>Swine</option><option>Poultry</option><option>Vegetables / Produce</option><option>Mixed Operation</option><option>Specialty Crops</option><option>Other</option></select></label>
+            <label>State / Region<input id="state" type="text" placeholder="Iowa or Central Illinois"></label>
+            <label>Total Acres / Herd Size<input id="total-acres" type="number" placeholder="1200"></label>
             <label>Years in Operation<input id="years-op" type="number" placeholder="12"></label>
-            <label class="wide">Primary Commodities<input id="commodities" type="text" placeholder="Corn, Soybeans, Wheat"></label>
-            <label class="wide">Operation Notes<textarea id="op-description" placeholder="Family-owned operation, acres rented/owned, main challenges..."></textarea></label>
+            <label class="wide">Primary Commodities<input id="commodities" type="text" placeholder="Corn, soybeans, wheat"></label>
+            <label class="wide">Operation Notes<textarea id="op-description" placeholder="Owned/rented acres, labor, pressure points..."></textarea></label>
           </fieldset>
 
           <fieldset>
             <legend>Revenue</legend>
-            <label>Primary Yield<input id="yield" type="number" step="0.01" placeholder="185"></label>
-            <label>Primary Price<input id="price" type="number" step="0.01" placeholder="4.72"></label>
-            <label>Secondary Revenue<input id="secondary-rev" type="number" placeholder="28000"></label>
-            <label>Other Income<input id="other-income" type="number" placeholder="18000"></label>
-            <label class="wide">Total Annual Revenue<input id="total-revenue" type="number" placeholder="1468800"></label>
+            <label>Primary Yield<input id="yield" type="number" step="0.01" placeholder="e.g. 185 bu/acre"></label>
+            <label>Primary Price<input id="price" type="number" step="0.01" placeholder="e.g. 4.65 per bu"></label>
+            <label>Secondary Revenue<input id="secondary-rev" type="number" placeholder="e.g. custom hire income, carbon credits"></label>
+            <label>Other Income<input id="other-income" type="number" placeholder="e.g. crop insurance, grants"></label>
+            <label class="wide">Total Annual Revenue<input id="total-revenue" type="number" placeholder="Calculated from acres, yield, price, and other income" readonly></label>
           </fieldset>
 
           <fieldset>
@@ -193,6 +183,57 @@
     </section>
   </main>
   </div>
+
+  <section class="app-view cme-view" id="cme-view">
+    <div class="section cme-section" id="market-watch-table">
+      <div class="section-kicker">CME Group</div>
+      <h2>Commodity futures snapshot</h2>
+      <p class="section-lead">Delayed futures prices with a farm-workspace snapshot, quote units, and automatic refresh while this tab is open.</p>
+      <div class="cme-snapshot-panel">
+        <div>
+          <h3>From your farm workspace</h3>
+          <p id="futures-snapshot-summary">Enter commodities in the farm workspace to focus this snapshot.</p>
+        </div>
+        <button class="ghost-btn" type="button" id="refresh-futures">Refresh Futures</button>
+      </div>
+      <div class="table-shell cme-snapshot-shell">
+        <table>
+          <thead>
+            <tr>
+              <th>Commodity</th>
+              <th>Contract</th>
+              <th>Price</th>
+              <th>Priced In</th>
+              <th>Updated</th>
+            </tr>
+          </thead>
+          <tbody id="futures-snapshot-body"><tr><td colspan="5">Loading futures snapshot...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="table-shell cme-table-shell">
+        <table>
+          <thead>
+            <tr>
+              <th>Group</th>
+              <th>Commodity</th>
+              <th>Contract</th>
+              <th>Price</th>
+              <th>Priced In</th>
+              <th>Last</th>
+              <th>Settle</th>
+              <th>Prior</th>
+              <th>Change</th>
+              <th>Volume</th>
+              <th>Updated</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody id="futures-body"><tr><td colspan="12">Loading futures...</td></tr></tbody>
+        </table>
+      </div>
+      <p class="fineprint" id="futures-note">Market data is delayed, auto-refreshes every 60 seconds while this tab is open, and should be checked directly with CME Group before trading or hedging decisions.</p>
+    </div>
+  </section>
 
   <section class="app-view ai-view" id="ai-view">
     <div class="section ai-lab">
@@ -273,6 +314,7 @@
 
   <footer><strong>AgriDecision AI</strong> · Farm Business Analytics & Investment Simulator</footer>
   <script src="/app.js"></script>
+  <script src="/cme-table.js"></script>
   <script src="/cloud-sync.js"></script>
 </body>
 </html>

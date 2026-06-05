@@ -2,7 +2,6 @@
   const scripts = [
     "/overlap-fix.js",
     "/cloud-sync-original.js",
-    "/cme-table.js",
     "/tools.js",
     "/enhancements.js",
     "/ui-fixes.js",
@@ -26,19 +25,33 @@
 
   function loadScript(src) {
     return new Promise((resolve) => {
+      const loaded = window.__agriLoadedScripts || (window.__agriLoadedScripts = new Set());
+      if (loaded.has(src) || document.querySelector(`script[src="${src}"]`)) {
+        loaded.add(src);
+        resolve();
+        return;
+      }
       const script = document.createElement("script");
       script.src = src;
       script.defer = true;
-      script.onload = resolve;
-      script.onerror = resolve;
+      script.onload = () => {
+        loaded.add(src);
+        resolve();
+      };
+      script.onerror = () => {
+        console.warn(`AgriDecision helper could not load: ${src}`);
+        resolve();
+      };
       document.head.appendChild(script);
     });
   }
 
   async function loadAll() {
+    document.documentElement.dataset.agriHelpers = "loading";
     for (const src of scripts) {
       await loadScript(src);
     }
+    document.documentElement.dataset.agriHelpers = "ready";
   }
 
   loadAll();

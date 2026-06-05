@@ -10,6 +10,11 @@
   function setCloudStatus(message) {
     const target = $("account-sync-status");
     if (target) target.textContent = message;
+    window.agriCloudSyncStatus = {
+      ...(window.agriCloudSyncStatus || {}),
+      message,
+      updatedAt: new Date().toISOString()
+    };
   }
 
   function setProjectStatus(message) {
@@ -53,8 +58,14 @@
       const config = await response.json();
       const supabase = config?.supabase || {};
       configured = Boolean(supabase.configured && supabase.url && supabase.anonKey);
+      window.agriCloudSyncStatus = {
+        configured,
+        hasUrl: Boolean(supabase.url),
+        hasKey: Boolean(supabase.anonKey),
+        updatedAt: new Date().toISOString()
+      };
       if (!configured) {
-        setCloudStatus("Cloud sync is not connected. This device is saving locally only.");
+        setCloudStatus("Cloud sync is not connected. Add the Supabase URL and publishable key in Vercel to sync across devices.");
         return false;
       }
       const module = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
@@ -69,12 +80,34 @@
         setCloudStatus("Sign in on both devices with the same email to sync projects.");
         return false;
       }
+      const tablesReady = await checkCloudTables();
+      if (!tablesReady) return false;
       await pullCloudProjects();
       return true;
     } catch (error) {
       setCloudStatus(`Cloud sync could not start: ${error.message}`);
       return false;
     }
+  }
+
+  function setupMessage(error) {
+    const details = error?.message ? ` ${error.message}` : "";
+    return `Cloud database setup is incomplete. Run supabase-schema.sql in Supabase so profiles and projects can sync.${details}`;
+  }
+
+  async function checkCloudTables() {
+    if (!client || !session?.user) return false;
+    const profileCheck = await client.from("agridecision_profiles").select("id").eq("id", session.user.id).limit(1);
+    if (profileCheck.error) {
+      setCloudStatus(setupMessage(profileCheck.error));
+      return false;
+    }
+    const projectCheck = await client.from("agridecision_projects").select("id").eq("user_id", session.user.id).limit(1);
+    if (projectCheck.error) {
+      setCloudStatus(setupMessage(projectCheck.error));
+      return false;
+    }
+    return true;
   }
 
   async function saveCloudProfile() {
@@ -89,7 +122,7 @@
       updated_at: new Date().toISOString()
     };
     const { error } = await client.from("agridecision_profiles").upsert(payload);
-    if (error) setCloudStatus(`Cloud profile save failed. Run the Supabase database setup. ${error.message}`);
+    if (error) setCloudStatus(setupMessage(error));
   }
 
   async function saveCloudProject(project) {
@@ -105,7 +138,7 @@
     };
     const { error } = await client.from("agridecision_projects").upsert(payload);
     if (error) {
-      setCloudStatus(`Cloud project save failed. Run the Supabase database setup. ${error.message}`);
+      setCloudStatus(setupMessage(error));
       return false;
     }
     setCloudStatus(`Cloud synced as ${session.user.email}.`);
@@ -114,19 +147,34 @@
 
   async function pullCloudProjects() {
     if (!client || !session?.user) return;
-    const { data, error } = await client.from("agridecision_projects").select("*").eq("user_id", session.user.id).order("updated_at", { ascending: false });
+    const { data, error } = await client
+      .from("agridecision_projects")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .order("updated_at", { ascending: false });
     if (error) {
-      setCloudStatus(`Cloud project load failed. Run the Supabase database setup. ${error.message}`);
+      setCloudStatus(setupMessage(error));
       return;
     }
     const email = session.user.email;
-    const cloud = (data || []).map(row => ({ ...(row.payload || {}), id: row.id, name: row.name || row.payload?.name || "Untitled Project", createdAt: row.created_at || row.payload?.createdAt, updatedAt: row.updated_at || row.payload?.updatedAt }));
+    const cloud = (data || []).map(row => ({
+      ...(row.payload || {}),
+      id: row.id,
+      name: row.name || row.payload?.name || "Untitled Project",
+      createdAt: row.created_at || row.payload?.createdAt,
+      updatedAt: row.updated_at || row.payload?.updatedAt
+    }));
     const local = getStore(email);
     const merged = new Map(local.projects.map(project => [project.id, project]));
     cloud.forEach(project => merged.set(project.id, project));
     const projects = Array.from(merged.values()).sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
     saveStore({ activeProjectId: local.activeProjectId || projects[0]?.id || "", projects }, email);
-    localStorage.setItem(PROFILE_KEY, JSON.stringify({ ...readProfile(), email, name: readProfile().name || email.split("@")[0], updatedAt: new Date().toISOString() }));
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({
+      ...readProfile(),
+      email,
+      name: readProfile().name || email.split("@")[0],
+      updatedAt: new Date().toISOString()
+    }));
     if (typeof renderProjects === "function") renderProjects();
     if (projects.length && !local.activeProjectId && typeof loadProject === "function") loadProject(projects[0].id);
     for (const project of local.projects) await saveCloudProject(project);

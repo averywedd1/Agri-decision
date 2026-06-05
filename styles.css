@@ -291,6 +291,15 @@ th {
   gap: 12px;
 }
 .project-manager p { grid-column: 1 / -1; font-size: 13px; }
+.guest-save-explainer {
+  padding: 10px 12px;
+  margin-bottom: 24px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f7faf5;
+  color: var(--muted);
+  font-size: 13px;
+}
 .project-actions,
 .dialog-actions,
 .report-actions,
@@ -345,6 +354,11 @@ input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--green-500);
   box-shadow: 0 0 0 3px rgba(58, 128, 53, 0.11);
+}
+input[readonly] {
+  background: #f7faf5;
+  color: var(--green-900);
+  cursor: default;
 }
 
 button, .primary-btn, .ghost-btn {
@@ -414,7 +428,7 @@ button, .primary-btn, .ghost-btn {
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 .analysis-content {
-  min-height: 240ppx;
+  min-height: 240px;
   padding: 28px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-lg);
@@ -490,7 +504,7 @@ button, .primary-btn, .ghost-btn {
 
 .ai-view {
   min-height: calc(100vh - 60px);
-  padding-top: 44ppx;
+  padding-top: 44px;
   background: var(--green-950);
 }
 .ai-lab h2 { color: white; }
@@ -516,6 +530,43 @@ button, .primary-btn, .ghost-btn {
 }
 .ai-combo-card { margin-top: 0; }
 
+.cme-view {
+  min-height: calc(100vh - 60px);
+  padding-top: 44px;
+  background: #f7faf5;
+}
+.cme-section {
+  max-width: 1280px;
+}
+.cme-snapshot-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 22px 0 14px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+.cme-snapshot-panel h3 {
+  margin: 0 0 6px;
+}
+.cme-snapshot-panel p {
+  margin: 0;
+  color: var(--muted);
+}
+.cme-snapshot-shell {
+  margin-bottom: 18px;
+}
+.cme-table-shell table {
+  min-width: 1080px;
+}
+.cme-table-shell td,
+.cme-table-shell th {
+  white-space: nowrap;
+}
+
 .story-view {
   min-height: calc(100vh - 60px);
   padding-top: 44px;
@@ -528,7 +579,7 @@ button, .primary-btn, .ghost-btn {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 28px;
-  margin-top: 30ppx;
+  margin-top: 30px;
 }
 .story-intro h3,
 .story-note h3 {
@@ -547,7 +598,7 @@ button, .primary-btn, .ghost-btn {
   margin-top: 28px;
 }
 .story-flow article {
-  padding: 22ppx;
+  padding: 22px;
   border: 1px solid rgba(46, 89, 42, 0.14);
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.72);
@@ -582,7 +633,7 @@ button, .primary-btn, .ghost-btn {
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 20ppx;
+  padding: 20px;
   background: rgba(13, 31, 13, 0.55);
 }
 .account-modal.visible { display: flex; }
@@ -598,7 +649,7 @@ button, .primary-btn, .ghost-btn {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 14ppx;
+  margin-bottom: 14px;
   padding: 4px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -633,6 +684,10 @@ footer strong { color: rgba(255, 255, 255, 0.76); }
   .section, .hero { padding-left: 22px; padding-right: 22px; }
   .feature-grid, .form-grid { grid-template-columns: 1fr; }
   .project-manager { grid-template-columns: 1fr; }
+  .cme-snapshot-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
   .ai-layout { grid-template-columns: 1fr; }
   .story-intro,
   .story-flow { grid-template-columns: 1fr; }
