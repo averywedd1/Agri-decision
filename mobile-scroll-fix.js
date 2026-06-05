@@ -33,6 +33,22 @@
       }
     `;
     document.head.appendChild(style);
+
+    if (!window.__agriMobileScrollToFixed) {
+      const nativeScrollTo = window.scrollTo.bind(window);
+      window.scrollTo = function patchedScrollTo(first, second) {
+        if (
+          window.matchMedia("(max-width: 760px)").matches &&
+          first &&
+          typeof first === "object" &&
+          first.behavior === "smooth"
+        ) {
+          return nativeScrollTo({ ...first, behavior: "auto" });
+        }
+        return nativeScrollTo(first, second);
+      };
+      window.__agriMobileScrollToFixed = true;
+    }
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run, { once: true });
