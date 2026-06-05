@@ -16,7 +16,8 @@
     "/current-improvements.js",
     "/calendar-data-fix.js",
     "/experience-polish.js",
-    "/agri-context.js"
+    "/agri-context.js",
+    "/qc-fixes.js"
   ];
 
   function loadScript(src) {
