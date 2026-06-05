@@ -20,7 +20,8 @@
     "/qc-fixes.js",
     "/tooltip-tools-fix.js",
     "/auth-account-guard.js",
-    "/farm-ui-polish.js"
+    "/farm-ui-polish.js",
+    "/mobile-scroll-fix.js"
   ];
 
   function loadScript(src) {
