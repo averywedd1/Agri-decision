@@ -46,16 +46,6 @@
     if (!previousRaw) localStorage.removeItem(projectKey(email));
   }
 
-  function setSigninMode() {
-    if (typeof setAuthMode === "function") setAuthMode("signin");
-    else {
-      byId("auth-create-mode")?.classList.remove("active");
-      byId("auth-signin-mode")?.classList.add("active");
-      if (byId("account-title")) byId("account-title").textContent = "Sign in to AgriDecision";
-      if (byId("save-account")) byId("save-account").textContent = "Sign In";
-    }
-  }
-
   function watchCreateAttempts() {
     if (window.__agriAccountGuardBound) return;
     window.__agriAccountGuardBound = true;
@@ -70,8 +60,7 @@
         const session = await currentSession();
         if (session?.user) return;
         restorePreviousProfile(previousRaw, email);
-        setSigninMode();
-        setStatus("That email was not signed in. If the account already exists, use Sign In. If it is new, confirm your email first.");
+        setStatus("If this is a new account, check your email to confirm it. If the email already has an account, choose Sign In when you are ready.");
         if (typeof applyProfile === "function") applyProfile();
         if (typeof renderProjects === "function") renderProjects();
       }, 2200);

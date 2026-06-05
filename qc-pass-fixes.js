@@ -124,6 +124,100 @@
     }
   }
 
+  async function supabaseCreateClient() {
+    const response = await fetch("/api/config");
+    const config = await response.json();
+    const supabase = config?.supabase || {};
+    if (!supabase.configured || !supabase.url || !supabase.anonKey) return null;
+    const module = await import("https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm");
+    return module.createClient(supabase.url, supabase.anonKey);
+  }
+
+  function writeProfile(profile) {
+    localStorage.setItem("agridecisionProfile", JSON.stringify(profile));
+    if (typeof applyProfile === "function") applyProfile();
+    if (typeof ensureFirstProject === "function") ensureFirstProject(profile.farmName);
+    if (typeof renderProjects === "function") renderProjects();
+    if (typeof updateAIContext === "function") updateAIContext();
+  }
+
+  function patchAccountCreate() {
+    const button = $("save-account");
+    if (!button || button.dataset.qcCreateBound) return;
+    button.dataset.qcCreateBound = "true";
+    button.addEventListener("click", async event => {
+      const creating = $("auth-create-mode")?.classList.contains("active") || /create/i.test(button.textContent || "");
+      if (!creating) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const status = $("account-sync-status");
+      const name = $("account-name")?.value.trim() || "";
+      const email = $("account-email")?.value.trim() || "";
+      const password = $("account-password")?.value || "";
+      const farmName = $("account-farm")?.value.trim() || $("farm-name")?.value.trim() || "";
+      if (!name) return alert("Please enter your name.");
+      if (!email) return alert("Please enter your email.");
+
+      const existing = typeof profile === "function" ? profile() : {};
+      const nextProfile = {
+        ...existing,
+        name,
+        email,
+        farmName,
+        lastFarmData: typeof getFormData === "function" ? getFormData() : {},
+        createdAt: existing.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      button.disabled = true;
+      const originalText = button.textContent;
+      button.textContent = "Creating...";
+      try {
+        const client = await supabaseCreateClient();
+        if (!client) {
+          writeProfile(nextProfile);
+          if (typeof saveProject === "function") saveProject({ silent: true, skipPrompt: true });
+          if (status) status.textContent = "Created a local account profile on this device. Add cloud sync settings to use it across devices.";
+          if (typeof closeAccount === "function") closeAccount();
+          return;
+        }
+
+        if (password.length < 6) return alert("Please enter a password with at least 6 characters.");
+        if (status) status.textContent = "Creating account...";
+        const result = await client.auth.signUp({
+          email,
+          password,
+          options: { data: { name, farm_name: farmName } }
+        });
+
+        if (result.error) {
+          const message = result.error.message || "Could not create the account.";
+          if (status) status.textContent = message;
+          return alert(message);
+        }
+
+        const identities = result.data?.user?.identities;
+        if (Array.isArray(identities) && identities.length === 0) {
+          if (status) status.textContent = "That email already has an account. Choose Sign In when you are ready.";
+          return;
+        }
+
+        writeProfile(nextProfile);
+        if (result.data?.session) {
+          if (typeof handleSignedIn === "function") await handleSignedIn(result.data.session.user);
+          if (status) status.textContent = `Signed in as ${email}. Cloud sync is on.`;
+          if (typeof closeAccount === "function") closeAccount();
+        } else if (status) {
+          status.textContent = "Account created. Check your email to confirm it, then sign in with this same email.";
+        }
+      } finally {
+        button.disabled = false;
+        button.textContent = originalText || "Create Account";
+      }
+    }, true);
+  }
+
   function wrapCmeHelpers() {
     if (typeof ensureCmeTableView === "function" && !ensureCmeTableView.isQcCmePatch) {
       const base = ensureCmeTableView;
@@ -168,6 +262,7 @@
   function run() {
     installStyles();
     patchProviderHelp();
+    patchAccountCreate();
     patchRevenueData();
     wrapCmeHelpers();
     calculateRevenueField();
