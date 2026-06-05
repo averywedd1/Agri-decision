@@ -21,7 +21,8 @@
     "/tooltip-tools-fix.js",
     "/auth-account-guard.js",
     "/farm-ui-polish.js",
-    "/mobile-scroll-fix.js"
+    "/mobile-scroll-fix.js",
+    "/cloud-sync-repair.js"
   ];
 
   function loadScript(src) {
