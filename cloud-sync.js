@@ -18,7 +18,8 @@
     "/qc-pass-fixes.js",
     "/field-map-world.js",
     "/account-sync-controller.js",
-    "/tools-map-placement-fix.js"
+    "/tools-map-placement-fix.js",
+    "/ai-chat-map-fixes.js"
   ];
 
   function loadScript(src) {
