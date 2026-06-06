@@ -146,7 +146,7 @@
     if (!button || button.dataset.qcCreateBound) return;
     button.dataset.qcCreateBound = "true";
     button.addEventListener("click", async event => {
-      const creating = $("auth-create-mode")?.classList.contains("active") || /create/i.test(button.textContent || "");
+      const creating = $("auth-create-mode")?.classList.contains("active") && !$("auth-signin-mode")?.classList.contains("active");
       if (!creating) return;
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -218,6 +218,53 @@
     }, true);
   }
 
+  function patchAuthModeControls() {
+    const create = $("auth-create-mode");
+    const signin = $("auth-signin-mode");
+    const save = $("save-account");
+    if (!create || !signin || !save || save.dataset.qcAuthModeBound) return;
+    save.dataset.qcAuthModeBound = "true";
+
+    create.addEventListener("click", () => {
+      create.classList.add("active");
+      signin.classList.remove("active");
+      save.textContent = "Create Account";
+      $("account-title").textContent = "Create your AgriDecision account";
+      $("account-name")?.closest("label")?.style.setProperty("display", "flex");
+      $("account-farm")?.closest("label")?.style.setProperty("display", "flex");
+    });
+
+    signin.addEventListener("click", () => {
+      signin.classList.add("active");
+      create.classList.remove("active");
+      save.textContent = "Sign In";
+      $("account-title").textContent = "Sign in to AgriDecision";
+      $("account-name")?.closest("label")?.style.setProperty("display", "none");
+      $("account-farm")?.closest("label")?.style.setProperty("display", "none");
+    });
+  }
+
+  function restoreLogo() {
+    const href = "/agridecision_icon.svg?v=15";
+    document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"], link[rel="apple-touch-icon"]').forEach(link => link.remove());
+    [
+      ["icon", "image/svg+xml"],
+      ["shortcut icon", ""],
+      ["apple-touch-icon", ""]
+    ].forEach(([rel, type]) => {
+      const link = document.createElement("link");
+      link.rel = rel;
+      if (type) link.type = type;
+      link.href = href;
+      document.head.appendChild(link);
+    });
+
+    const brand = document.querySelector(".brand");
+    if (!brand || brand.dataset.qcLogoRestored) return;
+    brand.dataset.qcLogoRestored = "true";
+    brand.innerHTML = `<img class="brand-logo-img" src="${href}" alt="AgriDecision logo"><span>AgriDecision</span>`;
+  }
+
   function wrapCmeHelpers() {
     if (typeof ensureCmeTableView === "function" && !ensureCmeTableView.isQcCmePatch) {
       const base = ensureCmeTableView;
@@ -255,13 +302,17 @@
     style.textContent = `
       #provider-help{display:none!important}
       #futures-body tr.workspace-match td:first-child{box-shadow:inset 3px 0 0 var(--green-600)}
+      .brand-logo-img{width:34px;height:34px;display:block;border-radius:9px;flex:0 0 auto}
+      .brand span{display:inline!important;color:var(--green-900)}
     `;
     document.head.appendChild(style);
   }
 
   function run() {
     installStyles();
+    restoreLogo();
     patchProviderHelp();
+    patchAuthModeControls();
     patchAccountCreate();
     patchRevenueData();
     wrapCmeHelpers();
