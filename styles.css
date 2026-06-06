@@ -292,13 +292,15 @@ th {
 }
 .project-manager p { grid-column: 1 / -1; font-size: 13px; }
 .guest-save-explainer {
-  padding: 10px 12px;
+  padding: 10px 16px;
   margin-bottom: 24px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #f7faf5;
   color: var(--muted);
   font-size: 13px;
+  text-align: center;
+  max-width: 100%;
 }
 .project-actions,
 .dialog-actions,
