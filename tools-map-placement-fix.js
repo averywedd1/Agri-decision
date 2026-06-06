@@ -205,6 +205,38 @@
         </div>
       `;
     }
+    const panel = view.querySelector(".field-map-panel");
+    const list = view.querySelector("#field-boundary-list");
+    const actions = view.querySelector(".field-map-actions");
+    if (panel && !view.querySelector("#owned-field-acres")) {
+      const controls = document.createElement("div");
+      controls.innerHTML = `
+        <div class="field-acre-summary">
+          <div><small>Owned acres</small><strong id="owned-field-acres">0.0</strong></div>
+          <div><small>Leased acres</small><strong id="leased-field-acres">0.0</strong></div>
+        </div>
+        <input class="field-map-field-name" id="field-area-name" type="text" placeholder="Field name, e.g. North 80">
+        <div class="field-tenure-toggle" aria-label="Field ownership type">
+          <button class="ghost-btn active" type="button" data-field-tenure="owned">Owned</button>
+          <button class="ghost-btn" type="button" data-field-tenure="leased">Leased</button>
+        </div>
+      `;
+      panel.insertBefore(controls, list || actions || panel.children[1] || null);
+    }
+    if (actions && !view.querySelector("#save-field-area")) {
+      const save = document.createElement("button");
+      save.className = "primary-btn";
+      save.type = "button";
+      save.id = "save-field-area";
+      save.textContent = "Save Field Area";
+      const next = document.createElement("button");
+      next.className = "ghost-btn";
+      next.type = "button";
+      next.id = "new-field-area";
+      next.textContent = "Start New Field";
+      actions.insertBefore(next, actions.firstChild);
+      actions.insertBefore(save, next);
+    }
   }
 
   function loadLeaflet() {
