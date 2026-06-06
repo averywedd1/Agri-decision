@@ -17,7 +17,8 @@
     "/cloud-sync-repair.js",
     "/qc-pass-fixes.js",
     "/field-map-world.js",
-    "/account-sync-controller.js"
+    "/account-sync-controller.js",
+    "/tools-map-placement-fix.js"
   ];
 
   function loadScript(src) {
