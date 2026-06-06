@@ -3,6 +3,7 @@
   const POLYGON_KEY = "agridecisionFieldPolygons";
   let map = null;
   let shapeLayer = null;
+  let fieldLayers = [];
   let markers = [];
   let leafletPromise = null;
 
@@ -36,7 +37,7 @@
     const projected = points.map(point => ({ x: point.lng * metersPerLng, y: point.lat * metersPerLat }));
     let area = 0;
     projected.forEach((point, index) => {
-      const next = projected[(index + 1) % points.length];
+      const next = projected[(index + 1) % projected.length];
       area += point.x * next.y - next.x * point.y;
     });
     return Math.abs(area / 2) / 4046.8564224;
@@ -47,15 +48,73 @@
       .map(point => ({ lat: Number(point.lat), lng: Number(point.lng) }))
       .filter(point => Number.isFinite(point.lat) && Number.isFinite(point.lng));
     const acres = acresFor(cleaned);
+    const savedFields = readFields().filter(field => field.id !== "primary-field-boundary");
     localStorage.setItem(FIELD_KEY, JSON.stringify(cleaned));
-    localStorage.setItem(POLYGON_KEY, JSON.stringify(cleaned.length >= 3 ? [{
-      id: "primary-field-boundary",
-      name: "Primary field boundary",
-      points: cleaned,
-      acres,
-      updatedAt: new Date().toISOString()
-    }] : []));
+    if (!savedFields.length) {
+      localStorage.setItem(POLYGON_KEY, JSON.stringify(cleaned.length >= 3 ? [{
+        id: "primary-field-boundary",
+        name: "Primary field boundary",
+        tenure: activeTenure(),
+        points: cleaned,
+        acres,
+        updatedAt: new Date().toISOString()
+      }] : []));
+    }
     window.dispatchEvent(new CustomEvent("agri-field-boundary-updated", { detail: { points: cleaned, acres } }));
+  }
+
+  function readFields() {
+    try {
+      const fields = JSON.parse(localStorage.getItem(POLYGON_KEY) || "[]");
+      return Array.isArray(fields)
+        ? fields.map((field, index) => ({
+          id: field.id || `field-${index + 1}`,
+          name: field.name || `Field ${index + 1}`,
+          tenure: field.tenure === "leased" ? "leased" : "owned",
+          points: Array.isArray(field.points) ? field.points.map(point => ({ lat: Number(point.lat), lng: Number(point.lng) })).filter(point => Number.isFinite(point.lat) && Number.isFinite(point.lng)) : [],
+          acres: Number(field.acres) || acresFor(field.points || []),
+          updatedAt: field.updatedAt || ""
+        })).filter(field => field.points.length >= 3)
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function writeFields(fields) {
+    localStorage.setItem(POLYGON_KEY, JSON.stringify(fields));
+    window.dispatchEvent(new CustomEvent("agri-field-boundary-updated", {
+      detail: {
+        fields,
+        ownedAcres: fields.filter(field => field.tenure === "owned").reduce((sum, field) => sum + (Number(field.acres) || 0), 0),
+        leasedAcres: fields.filter(field => field.tenure === "leased").reduce((sum, field) => sum + (Number(field.acres) || 0), 0)
+      }
+    }));
+  }
+
+  function activeTenure() {
+    return document.querySelector("[data-field-tenure].active")?.dataset.fieldTenure || "owned";
+  }
+
+  function setActiveTenure(tenure) {
+    document.querySelectorAll("[data-field-tenure]").forEach(button => {
+      button.classList.toggle("active", button.dataset.fieldTenure === tenure);
+    });
+  }
+
+  function fieldColor(tenure) {
+    return tenure === "leased"
+      ? { stroke: "#b7791f", fill: "#d69e2e" }
+      : { stroke: "#2d6628", fill: "#3a8035" };
+  }
+
+  function fieldTotals(fields = readFields()) {
+    return fields.reduce((totals, field) => {
+      if (field.id === "primary-field-boundary") return totals;
+      if (field.tenure === "leased") totals.leased += Number(field.acres) || 0;
+      else totals.owned += Number(field.acres) || 0;
+      return totals;
+    }, { owned: 0, leased: 0 });
   }
 
   function ensureStyles() {
@@ -71,6 +130,16 @@
       .field-map-panel{display:grid;gap:12px;padding:16px;border:1px solid var(--line);border-radius:8px;background:#fff;box-shadow:var(--shadow)}
       .field-boundary-list{display:grid;gap:4px;max-height:180px;overflow:auto;color:var(--muted);font-size:12px}
       .field-map-actions{display:grid;gap:8px}
+      .field-acre-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+      .field-acre-summary div{padding:10px;border:1px solid var(--line);border-radius:8px;background:#f7faf5}
+      .field-acre-summary small{display:block;color:var(--muted);font-size:11px}
+      .field-acre-summary strong{display:block;color:var(--green-900);font-size:18px}
+      .field-tenure-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+      .field-tenure-toggle button.active{background:var(--green-700);border-color:var(--green-700);color:#fff}
+      .field-map-field-name{width:100%;border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit}
+      .field-row{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+      .field-row-dot{width:10px;height:10px;border-radius:999px}
+      .field-row button{border:0;background:transparent;color:#9b2c2c;cursor:pointer;font:inherit;padding:2px}
       #tools-view #expense-chart-card{margin:18px 0 0}
       @media(max-width:820px){.field-map-layout{grid-template-columns:1fr}.field-map-canvas{min-height:360px;height:58vh}}
     `;
@@ -114,8 +183,19 @@
             <div class="field-map-canvas" id="field-map-canvas" aria-label="World map for field boundaries"></div>
             <aside class="field-map-panel">
               <strong id="field-boundary-acres">Click at least 3 points to create a boundary</strong>
+              <div class="field-acre-summary">
+                <div><small>Owned acres</small><strong id="owned-field-acres">0.0</strong></div>
+                <div><small>Leased acres</small><strong id="leased-field-acres">0.0</strong></div>
+              </div>
+              <input class="field-map-field-name" id="field-area-name" type="text" placeholder="Field name, e.g. North 80">
+              <div class="field-tenure-toggle" aria-label="Field ownership type">
+                <button class="ghost-btn active" type="button" data-field-tenure="owned">Owned</button>
+                <button class="ghost-btn" type="button" data-field-tenure="leased">Leased</button>
+              </div>
               <div class="field-boundary-list" id="field-boundary-list"></div>
               <div class="field-map-actions">
+                <button class="primary-btn" type="button" id="save-field-area">Save Field Area</button>
+                <button class="ghost-btn" type="button" id="new-field-area">Start New Field</button>
                 <button class="ghost-btn" type="button" id="undo-field-point">Undo Point</button>
                 <button class="ghost-btn" type="button" id="clear-field-points">Clear Points</button>
                 <button class="primary-btn" type="button" id="use-field-acres">Use Mapped Acres</button>
@@ -150,16 +230,39 @@
 
   function drawBoundary() {
     const points = readBoundary();
+    const fields = readFields().filter(field => field.id !== "primary-field-boundary");
     const acres = acresFor(points);
     const acresText = $("field-boundary-acres");
     const list = $("field-boundary-list");
-    if (acresText) acresText.textContent = points.length >= 3 ? `${acres.toFixed(1)} mapped acres` : "Click at least 3 points to create a boundary";
+    const totals = fieldTotals(fields);
+    if ($("owned-field-acres")) $("owned-field-acres").textContent = totals.owned.toFixed(1);
+    if ($("leased-field-acres")) $("leased-field-acres").textContent = totals.leased.toFixed(1);
+    if (acresText) acresText.textContent = points.length >= 3 ? `${acres.toFixed(1)} acres in current outline` : "Click at least 3 points to create a boundary";
     if (list) {
-      list.innerHTML = points.length
-        ? points.map((point, index) => `<span>${index + 1}. ${point.lat.toFixed(5)}, ${point.lng.toFixed(5)}</span>`).join("")
-        : "<span>No boundary points yet.</span>";
+      const saved = fields.length ? fields.map(field => {
+        const color = fieldColor(field.tenure);
+        return `<div class="field-row">
+          <span class="field-row-dot" style="background:${color.fill}"></span>
+          <span><strong>${field.name}</strong><br>${field.tenure === "leased" ? "Leased" : "Owned"} - ${(Number(field.acres) || 0).toFixed(1)} acres</span>
+          <button type="button" data-delete-field="${field.id}" aria-label="Delete ${field.name}">Delete</button>
+        </div>`;
+      }).join("") : '<span>No saved owned or leased fields yet.</span>';
+      const draft = points.length
+        ? `<span>Current outline: ${points.length} point${points.length === 1 ? "" : "s"}</span>`
+        : "<span>Click the map to start a field outline.</span>";
+      list.innerHTML = `${saved}${draft}`;
     }
     if (!map || !window.L) return;
+    fieldLayers.forEach(layer => layer.remove());
+    fieldLayers = fields.map(field => {
+      const color = fieldColor(field.tenure);
+      return window.L.polygon(field.points.map(point => [point.lat, point.lng]), {
+        color: color.stroke,
+        weight: 3,
+        fillColor: color.fill,
+        fillOpacity: 0.22
+      }).addTo(map).bindTooltip(`${field.name}: ${field.tenure === "leased" ? "Leased" : "Owned"} - ${(Number(field.acres) || 0).toFixed(1)} acres`);
+    });
     markers.forEach(marker => marker.remove());
     markers = points.map((point, index) => window.L.circleMarker([point.lat, point.lng], {
       radius: 5,
@@ -169,15 +272,18 @@
       fillOpacity: 1
     }).addTo(map).bindTooltip(`Point ${index + 1}`));
     if (shapeLayer) shapeLayer.remove();
+    const draftColor = fieldColor(activeTenure());
     shapeLayer = points.length >= 3
-      ? window.L.polygon(points.map(point => [point.lat, point.lng]), { color: "#2d6628", weight: 3, fillColor: "#3a8035", fillOpacity: 0.24 }).addTo(map)
+      ? window.L.polygon(points.map(point => [point.lat, point.lng]), { color: draftColor.stroke, dashArray: "6 6", weight: 3, fillColor: draftColor.fill, fillOpacity: 0.14 }).addTo(map)
       : points.length >= 2
-        ? window.L.polyline(points.map(point => [point.lat, point.lng]), { color: "#2d6628", weight: 3 }).addTo(map)
+        ? window.L.polyline(points.map(point => [point.lat, point.lng]), { color: draftColor.stroke, dashArray: "6 6", weight: 3 }).addTo(map)
         : null;
   }
 
   function syncMappedAcres() {
-    const acres = acresFor(readBoundary());
+    const totals = fieldTotals();
+    const draftAcres = acresFor(readBoundary());
+    const acres = totals.owned + totals.leased || draftAcres;
     const total = $("total-acres");
     if (total && acres > 0) {
       total.value = acres.toFixed(1);
@@ -220,6 +326,62 @@
   }
 
   function bindMapControls() {
+    document.querySelectorAll("[data-field-tenure]").forEach(button => {
+      if (button.dataset.placementFixBound === "true") return;
+      button.dataset.placementFixBound = "true";
+      button.addEventListener("click", () => {
+        setActiveTenure(button.dataset.fieldTenure);
+        drawBoundary();
+      });
+    });
+    const saveField = $("save-field-area");
+    if (saveField && saveField.dataset.placementFixBound !== "true") {
+      saveField.dataset.placementFixBound = "true";
+      saveField.addEventListener("click", () => {
+        const points = readBoundary();
+        if (points.length < 3) return alert("Click at least 3 points on the map before saving a field area.");
+        const fields = readFields().filter(field => field.id !== "primary-field-boundary");
+        const tenure = activeTenure();
+        const acres = acresFor(points);
+        const nameInput = $("field-area-name");
+        const fallbackNumber = fields.filter(field => field.tenure === tenure).length + 1;
+        const name = (nameInput?.value || `${tenure === "leased" ? "Leased" : "Owned"} Field ${fallbackNumber}`).trim();
+        fields.push({
+          id: `field-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          name,
+          tenure,
+          acres,
+          points,
+          updatedAt: new Date().toISOString()
+        });
+        writeFields(fields);
+        localStorage.setItem(FIELD_KEY, "[]");
+        if (nameInput) nameInput.value = "";
+        drawBoundary();
+        syncMappedAcres();
+        if (typeof saveProject === "function") saveProject({ silent: true, skipPrompt: true });
+      });
+    }
+    const newField = $("new-field-area");
+    if (newField && newField.dataset.placementFixBound !== "true") {
+      newField.dataset.placementFixBound = "true";
+      newField.addEventListener("click", () => {
+        localStorage.setItem(FIELD_KEY, "[]");
+        drawBoundary();
+      });
+    }
+    const list = $("field-boundary-list");
+    if (list && list.dataset.placementFixBound !== "true") {
+      list.dataset.placementFixBound = "true";
+      list.addEventListener("click", event => {
+        const button = event.target.closest("[data-delete-field]");
+        if (!button) return;
+        writeFields(readFields().filter(field => field.id !== button.dataset.deleteField));
+        drawBoundary();
+        syncMappedAcres();
+        if (typeof saveProject === "function") saveProject({ silent: true, skipPrompt: true });
+      });
+    }
     const undo = $("undo-field-point");
     if (undo && undo.dataset.placementFixBound !== "true") {
       undo.dataset.placementFixBound = "true";
@@ -266,9 +428,19 @@
       getFormData = function () {
         const data = base.apply(this, arguments);
         const points = readBoundary();
+        const fields = readFields().filter(field => field.id !== "primary-field-boundary");
+        const totals = fieldTotals(fields);
+        if (fields.length) {
+          data.fieldBoundaries = fields;
+          data.ownedMappedAcres = String(totals.owned.toFixed(1));
+          data.leasedMappedAcres = String(totals.leased.toFixed(1));
+        }
         if (points.length >= 3) {
           data.fieldBoundary = { source: "field map", acres: Number(acresFor(points).toFixed(1)), center: centerOf(points), points };
           data.mappedAcres = String(data.fieldBoundary.acres);
+        } else if (fields.length) {
+          data.fieldBoundary = fields[0];
+          data.mappedAcres = String((totals.owned + totals.leased).toFixed(1));
         }
         return data;
       };
