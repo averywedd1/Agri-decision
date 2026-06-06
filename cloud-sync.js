@@ -19,7 +19,7 @@
   ];
 
   function loadScript(src) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       const loaded = window.__agriLoadedScripts || (window.__agriLoadedScripts = new Set());
       if (loaded.has(src) || document.querySelector(`script[src="${src}"]`)) {
         loaded.add(src);

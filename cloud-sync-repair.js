@@ -50,6 +50,34 @@
     }));
   }
 
+  function newerProject(a, b) {
+    const aTime = Date.parse(a?.updatedAt || a?.createdAt || "") || 0;
+    const bTime = Date.parse(b?.updatedAt || b?.createdAt || "") || 0;
+    return aTime >= bTime ? a : b;
+  }
+
+  function mergeProjectList(target, projects) {
+    (projects || []).forEach(project => {
+      if (!project?.id) return;
+      target.set(project.id, target.has(project.id) ? newerProject(target.get(project.id), project) : project);
+    });
+  }
+
+  function hasUsefulData(data) {
+    return Object.values(data || {}).some(value => String(value || "").trim());
+  }
+
+  function draftProject() {
+    if (typeof getFormData !== "function") return null;
+    const data = getFormData();
+    if (!hasUsefulData(data)) return null;
+    const now = new Date().toISOString();
+    const name = String(data.farmName || data.commodities || "Farm Workspace").trim() || "Farm Workspace";
+    const base = { id: `project-${Date.now()}-${Math.random().toString(16).slice(2)}`, name, createdAt: now };
+    if (typeof projectSnapshot === "function") return projectSnapshot(base);
+    return { ...base, farmData: data, updatedAt: now };
+  }
+
   async function initClient() {
     if (ready) return Boolean(client && session?.user);
     ready = true;
@@ -72,9 +100,9 @@
       client = module.createClient(supabase.url, supabase.anonKey);
       const result = await client.auth.getSession();
       session = result.data?.session || null;
-      client.auth.onAuthStateChange((_event, nextSession) => {
+      client.auth.onAuthStateChange(async (_event, nextSession) => {
         session = nextSession;
-        if (session?.user) pullCloudProjects();
+        if (session?.user && await checkCloudTables()) pullCloudProjects();
       });
       if (!session?.user) {
         setCloudStatus("Sign in on both devices with the same email to sync projects.");
@@ -164,20 +192,32 @@
       createdAt: row.created_at || row.payload?.createdAt,
       updatedAt: row.updated_at || row.payload?.updatedAt
     }));
+    const profileBefore = readProfile();
     const local = getStore(email);
-    const merged = new Map(local.projects.map(project => [project.id, project]));
-    cloud.forEach(project => merged.set(project.id, project));
+    const guest = getStore("guest");
+    const previous = profileBefore.email && profileBefore.email !== email ? getStore(profileBefore.email) : { activeProjectId: "", projects: [] };
+    const merged = new Map();
+    mergeProjectList(merged, previous.projects);
+    mergeProjectList(merged, guest.projects);
+    mergeProjectList(merged, local.projects);
+    mergeProjectList(merged, cloud);
+    if (!merged.size) {
+      const draft = draftProject();
+      if (draft) merged.set(draft.id, draft);
+    }
     const projects = Array.from(merged.values()).sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
-    saveStore({ activeProjectId: local.activeProjectId || projects[0]?.id || "", projects }, email);
+    const activeProjectId = local.activeProjectId || previous.activeProjectId || guest.activeProjectId || projects[0]?.id || "";
+    saveStore({ activeProjectId, projects }, email);
     localStorage.setItem(PROFILE_KEY, JSON.stringify({
-      ...readProfile(),
+      ...profileBefore,
       email,
-      name: readProfile().name || email.split("@")[0],
+      name: profileBefore.name || email.split("@")[0],
       updatedAt: new Date().toISOString()
     }));
     if (typeof renderProjects === "function") renderProjects();
-    if (projects.length && !local.activeProjectId && typeof loadProject === "function") loadProject(projects[0].id);
-    for (const project of local.projects) await saveCloudProject(project);
+    if (projects.length && typeof loadProject === "function") loadProject(activeProjectId || projects[0].id);
+    for (const project of projects) await saveCloudProject(project);
+    await saveCloudProfile();
     setCloudStatus(`Cloud sync is on as ${email}. ${projects.length} project${projects.length === 1 ? "" : "s"} available.`);
   }
 
