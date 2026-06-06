@@ -1,4 +1,4 @@
-const CACHE_NAME = "agridecision-shell-v18";
+const CACHE_NAME = "agridecision-shell-v19";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -24,6 +24,7 @@ const APP_SHELL = [
   "/cloud-sync-repair.js",
   "/qc-pass-fixes.js",
   "/field-map-world.js",
+  "/account-sync-controller.js",
   "/agridecision_icon.svg",
   "/agridecision_logo.svg",
   "/manifest.webmanifest"

@@ -16,7 +16,8 @@
     "/mobile-scroll-fix.js",
     "/cloud-sync-repair.js",
     "/qc-pass-fixes.js",
-    "/field-map-world.js"
+    "/field-map-world.js",
+    "/account-sync-controller.js"
   ];
 
   function loadScript(src) {
