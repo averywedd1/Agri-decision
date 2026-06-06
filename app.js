@@ -262,7 +262,6 @@ function loadProject(projectId) {
 }
 
 function createProject() {
-  if (!requireProfile()) return;
   const name = prompt("Name this project", projectName("New Farm Project"));
   if (!name) return;
   const now = new Date().toISOString();
@@ -279,6 +278,7 @@ function createProject() {
   clearComboChat();
   renderProjects();
   updateAIContext();
+  setStatus(`Project "${project.name}" created. ${hasProfile() ? "Autosaving under your account." : "Saved locally — create an account to sync across devices."}`);
 }
 
 function deleteProject() {
@@ -366,7 +366,7 @@ Goals: ${data.goals || "None specified"}
 }
 
 function systemPrompt() {
-  return "You are AgriDecision AI, a practical agricultural business advisor. Use clean HTML only. Do not use markdown asterisks. Give direct, lender-grade recommendations, tables when helpful, clear assumptions, and specific next steps.";
+  return "You are AgriDecision AI, a helpful assistant with deep expertise in agricultural business, farm finance, and agronomy. Use clean HTML only. Do not use markdown asterisks. Answer any question the user asks — general questions like dates, facts, definitions, or calculations should be answered directly and helpfully. For farm-related questions, give direct, lender-grade recommendations, tables when helpful, clear assumptions, and specific next steps. Today's date is " + new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" }) + ".";
 }
 
 function sectionPrompt(label, context) {
@@ -426,7 +426,7 @@ async function loadProviders() {
   updateProviderHelp();
 }
 
-async function callAI(provider, userPrompt, maxTokens = 1600, temperature = 0.5) {
+async function callAI(provider, userPrompt, maxTokens = 1600, temperature = 0.5, history = []) {
   const response = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -436,6 +436,7 @@ async function callAI(provider, userPrompt, maxTokens = 1600, temperature = 0.5)
       model: provider.model,
       systemPrompt: systemPrompt(),
       userPrompt,
+      history,
       maxTokens,
       temperature
     })
@@ -536,9 +537,9 @@ async function sendReportChat() {
   $("chatbot-send").disabled = true;
   addMessage("chatbot-messages", "ai", "<em>Thinking...</em>");
   const loading = $("chatbot-messages").lastElementChild;
-  const prompt = `Farm data:\n${buildContext(getFormData())}\n\nReport context:\n${reportText()}\n\nChat history:\n${reportChat.map(m => `${m.role}: ${m.content}`).join("\n")}\n\nQuestion: ${question}`;
+  const prompt = `Farm data:\n${buildContext(getFormData())}\n\nReport context:\n${reportText()}\n\nQuestion: ${question}`;
   try {
-    const safe = cleanAI(await callAI(provider, prompt, 1600, 0.45));
+    const safe = cleanAI(await callAI(provider, prompt, 1600, 0.45, reportChat.slice(-20)));
     loading.innerHTML = safe;
     reportChat.push({ role: "user", content: question }, { role: "assistant", content: safe.replace(/<[^>]*>/g, " ") });
     saveProject({ silent: true, skipPrompt: true });
@@ -574,7 +575,7 @@ async function sendComboChat() {
   const loading = $("ai-combo-messages").lastElementChild;
   const prompt = `Use the saved account and project context below. Compare recommendations across the configured AI providers and produce one practical answer.\n\nAccount: ${profile().name}\nProject: ${activeProject()?.name || projectName("Unsaved Project")}\nFarm data:\n${buildContext(getFormData())}\n\nExisting report context:\n${reportText()}\n\nQuestion: ${question}`;
   try {
-    const safe = cleanAI(await callAI({ id: "all", name: "AgriDecision AI" }, prompt, 2200, 0.45));
+    const safe = cleanAI(await callAI({ id: "all", name: "AgriDecision AI" }, prompt, 2200, 0.45, comboChat.slice(-20)));
     loading.innerHTML = safe;
     comboChat.push({ role: "user", content: question }, { role: "assistant", content: safe });
     saveProject({ silent: true, skipPrompt: true });
