@@ -15,7 +15,8 @@
     "/farm-ui-polish.js",
     "/mobile-scroll-fix.js",
     "/cloud-sync-repair.js",
-    "/qc-pass-fixes.js"
+    "/qc-pass-fixes.js",
+    "/field-map-world.js"
   ];
 
   function loadScript(src) {
