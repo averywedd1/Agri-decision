@@ -51,5 +51,9 @@
     document.documentElement.dataset.agriHelpers = "ready";
   }
 
-  loadAll();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadAll, { once: true });
+  } else {
+    loadAll();
+  }
 }());
