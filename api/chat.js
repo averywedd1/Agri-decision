@@ -99,13 +99,17 @@ function cleanAnswer(answer) {
     .trim();
 }
 
-async function callOpenAiLike({ provider, apiKey, systemPrompt, userPrompt, maxTokens, temperature }) {
+async function callOpenAiLike({ provider, apiKey, systemPrompt, userPrompt, history, maxTokens, temperature }) {
   const headers = { "Content-Type": "application/json" };
   if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
   if (provider.id === "openrouter") {
     headers["HTTP-Referer"] = "https://agri-decision.vercel.app";
     headers["X-Title"] = "AgriDecision AI";
   }
+
+  const historyMessages = Array.isArray(history)
+    ? history.map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: String(m.content || "") }))
+    : [];
 
   const response = await fetch(provider.endpoint, {
     method: "POST",
@@ -116,6 +120,7 @@ async function callOpenAiLike({ provider, apiKey, systemPrompt, userPrompt, maxT
       temperature,
       messages: [
         { role: "system", content: `${systemPrompt}\n\nDo not use markdown asterisks. Return clean HTML when formatting is helpful.` },
+        ...historyMessages,
         { role: "user", content: userPrompt }
       ]
     })
@@ -143,9 +148,13 @@ async function callOpenAiLike({ provider, apiKey, systemPrompt, userPrompt, maxT
   );
 }
 
-async function callGemini({ provider, apiKey, systemPrompt, userPrompt, maxTokens, temperature }) {
+async function callGemini({ provider, apiKey, systemPrompt, userPrompt, history, maxTokens, temperature }) {
   const model = String(provider.model || "gemini-2.5-flash").replace(/^models\//, "");
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+  const historyContents = Array.isArray(history)
+    ? history.map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: String(m.content || "") }] }))
+    : [];
 
   const response = await fetch(url, {
     method: "POST",
@@ -154,7 +163,10 @@ async function callGemini({ provider, apiKey, systemPrompt, userPrompt, maxToken
       systemInstruction: {
         parts: [{ text: `${systemPrompt}\n\nDo not use markdown asterisks. Return clean HTML when formatting is helpful.` }]
       },
-      contents: [{ role: "user", parts: [{ text: userPrompt }] }],
+      contents: [
+        ...historyContents,
+        { role: "user", parts: [{ text: userPrompt }] }
+      ],
       generationConfig: { temperature, maxOutputTokens: maxTokens }
     })
   });
@@ -175,17 +187,17 @@ async function callGemini({ provider, apiKey, systemPrompt, userPrompt, maxToken
   return parts.map(part => part.text || "").join("\n").trim() || "No response text was returned.";
 }
 
-async function callProvider({ provider, systemPrompt, userPrompt, maxTokens, temperature }) {
+async function callProvider({ provider, systemPrompt, userPrompt, history, maxTokens, temperature }) {
   const apiKey = provider.key();
   if (!provider.model) throw new Error(`Missing model for ${provider.id}.`);
   if (!apiKey) throw new Error(`Missing ${provider.id.toUpperCase()} API key in Vercel environment variables.`);
 
   if (provider.mode === "gemini") {
-    return callGemini({ provider, apiKey, systemPrompt, userPrompt, maxTokens, temperature });
+    return callGemini({ provider, apiKey, systemPrompt, userPrompt, history, maxTokens, temperature });
   }
 
   if (!provider.endpoint) throw new Error(`Missing endpoint for ${provider.id}.`);
-  return callOpenAiLike({ provider, apiKey, systemPrompt, userPrompt, maxTokens, temperature });
+  return callOpenAiLike({ provider, apiKey, systemPrompt, userPrompt, history, maxTokens, temperature });
 }
 
 module.exports = async function handler(req, res) {
@@ -202,6 +214,7 @@ module.exports = async function handler(req, res) {
     const provider = getProvider(body);
     const userPrompt = String(body.userPrompt || "").trim();
     const systemPrompt = String(body.systemPrompt || "").trim();
+    const history = Array.isArray(body.history) ? body.history : [];
     const maxTokens = Math.min(Number(body.maxTokens) || 1200, 6000);
     const temperature = Number(body.temperature) || 0.5;
 
@@ -220,6 +233,7 @@ module.exports = async function handler(req, res) {
           provider: configuredProvider,
           systemPrompt,
           userPrompt,
+          history,
           maxTokens: perProviderMaxTokens,
           temperature
         })
@@ -248,7 +262,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const answer = await callProvider({ provider, systemPrompt, userPrompt, maxTokens, temperature });
+    const answer = await callProvider({ provider, systemPrompt, userPrompt, history, maxTokens, temperature });
     return sendJson(res, 200, { answer: cleanAnswer(answer) });
   } catch (error) {
     return sendJson(res, 500, {
