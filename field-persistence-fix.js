@@ -80,8 +80,14 @@
   function writeMapState(fields, draft = []) {
     const cleanedFields = cleanFields(fields);
     const cleanedDraft = cleanPoints(draft);
-    localStorage.setItem(POLYGON_KEY, JSON.stringify(cleanedFields));
-    localStorage.setItem(FIELD_KEY, JSON.stringify(cleanedDraft));
+    const fieldsJson = JSON.stringify(cleanedFields);
+    const draftJson = JSON.stringify(cleanedDraft);
+    const changed =
+      localStorage.getItem(POLYGON_KEY) !== fieldsJson ||
+      localStorage.getItem(FIELD_KEY) !== draftJson;
+    localStorage.setItem(POLYGON_KEY, fieldsJson);
+    localStorage.setItem(FIELD_KEY, draftJson);
+    if (!changed) return;
     notify(cleanedFields, cleanedDraft);
   }
 
@@ -212,11 +218,22 @@
     window.addEventListener("beforeunload", persistCurrentProjectCopy);
   }
 
+  function guardStartupRestore() {
+    if (document.documentElement.dataset.fieldPersistenceGuard === "true") return;
+    document.documentElement.dataset.fieldPersistenceGuard = "true";
+    const startedAt = Date.now();
+    const timer = setInterval(() => {
+      restoreProject(activeSavedProject(), { preserveLocal: true });
+      if (Date.now() - startedAt >= 6000) clearInterval(timer);
+    }, 100);
+  }
+
   function install() {
     patchProjectSnapshot();
     patchLoadProject();
     bindMapSaves();
     restoreProject(activeSavedProject(), { preserveLocal: true });
+    guardStartupRestore();
   }
 
   if (document.readyState === "loading") {
