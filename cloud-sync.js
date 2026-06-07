@@ -16,6 +16,7 @@
     "/mobile-scroll-fix.js",
     "/cloud-sync-repair.js",
     "/qc-pass-fixes.js",
+    "/field-point-order-fix.js",
     "/field-map-world.js",
     "/account-sync-controller.js",
     "/tools-map-placement-fix.js",
