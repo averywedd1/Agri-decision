@@ -20,7 +20,8 @@
     "/field-map-world.js",
     "/account-sync-controller.js",
     "/tools-map-placement-fix.js",
-    "/ai-chat-map-fixes.js"
+    "/ai-chat-map-fixes.js",
+    "/cme-single-table-fix.js"
   ];
 
   function loadScript(src) {
