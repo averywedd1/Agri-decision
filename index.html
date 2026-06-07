@@ -18,7 +18,11 @@
     </a>
     <div class="nav-actions">
       <details class="site-menu" id="site-menu">
-        <summary class="menu-toggle" aria-label="Open page menu"><span></span><span></span><span></span></summary>
+        <summary class="menu-toggle" aria-label="Open page menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </summary>
         <div class="menu-panel" id="site-menu-panel">
           <button class="workspace-tab active" type="button" data-app-tab="workspace" onclick="this.closest('details').removeAttribute('open')">Farm Workspace</button>
           <button class="workspace-tab" type="button" data-app-tab="cme" onclick="this.closest('details').removeAttribute('open')">CME Group</button>
@@ -76,20 +80,38 @@
       <div class="section-kicker">Step 1</div>
       <h2>Enter your farm data</h2>
       <p class="section-lead">Start blank or load the demo farm to see what a completed analysis looks like.</p>
+
       <div class="settings-bar">
-        <label>AI Advisor<select id="ai-provider"><option value="">AgriDecision AI</option></select></label>
-        <div class="custom-provider-fields" id="custom-provider-fields"><input id="custom-endpoint" type="url" placeholder="Custom endpoint"><input id="custom-model" type="text" placeholder="Custom model"></div>
+        <label>AI Advisor
+          <select id="ai-provider">
+            <option value="">AgriDecision AI</option>
+          </select>
+        </label>
+        <div class="custom-provider-fields" id="custom-provider-fields">
+          <input id="custom-endpoint" type="url" placeholder="Custom endpoint">
+          <input id="custom-model" type="text" placeholder="Custom model">
+        </div>
         <small id="provider-help" hidden></small>
       </div>
+
       <div class="project-manager">
-        <label>Saved Project<select id="project-select"><option value="">No saved projects yet</option></select></label>
-        <div class="project-actions"><button class="ghost-btn" type="button" id="new-project">New Project</button><button class="ghost-btn" type="button" id="save-project">Save Project</button><button class="ghost-btn danger" type="button" id="delete-project">Delete</button></div>
+        <label>Saved Project
+          <select id="project-select"><option value="">No saved projects yet</option></select>
+        </label>
+        <div class="project-actions">
+          <button class="ghost-btn" type="button" id="new-project">New Project</button>
+          <button class="ghost-btn" type="button" id="save-project">Save Project</button>
+          <button class="ghost-btn danger" type="button" id="delete-project">Delete</button>
+        </div>
         <p id="project-status">Save a local draft now, or create an account to sync projects across devices.</p>
       </div>
+
       <p class="guest-save-explainer" id="privacy-note">Your farm financials stay private to your browser unless you sign in. Signed-in projects sync only to your own account.</p>
+
       <form id="farm-form">
         <div class="form-grid">
-          <fieldset><legend>Operation Profile</legend>
+          <fieldset>
+            <legend>Operation Profile</legend>
             <label>Farm / Business Name<input id="farm-name" type="text" placeholder="Miller Family Farms"></label>
             <label>Farm Type<select id="farm-type"><option>Row Crops (corn/soy)</option><option>Wheat / Small Grains</option><option>Cotton</option><option>Dairy</option><option>Beef Cattle</option><option>Swine</option><option>Poultry</option><option>Vegetables / Produce</option><option>Mixed Operation</option><option>Specialty Crops</option><option>Other</option></select></label>
             <label>State / Region<input id="state" type="text" placeholder="Iowa or Central Illinois"></label>
@@ -98,43 +120,215 @@
             <label class="wide">Primary Commodities<input id="commodities" type="text" placeholder="Corn, soybeans, wheat"></label>
             <label class="wide">Operation Notes<textarea id="op-description" placeholder="Owned/rented acres, labor, pressure points..."></textarea></label>
           </fieldset>
-          <fieldset><legend>Revenue</legend>
+
+          <fieldset>
+            <legend>Revenue</legend>
             <label>Primary Yield<input id="yield" type="number" step="0.01" placeholder="e.g. 185 bu/acre"></label>
             <label>Primary Price<input id="price" type="number" step="0.01" placeholder="e.g. 4.65 per bu"></label>
             <label>Secondary Revenue<input id="secondary-rev" type="number" placeholder="e.g. custom hire income, carbon credits"></label>
             <label>Other Income<input id="other-income" type="number" placeholder="e.g. crop insurance, grants"></label>
             <label class="wide">Total Annual Revenue<input id="total-revenue" type="number" placeholder="Calculated from acres, yield, price, and other income" readonly></label>
           </fieldset>
-          <fieldset><legend>Operating Costs Per Acre</legend>
-            <label>Seed<input id="seed" type="number" placeholder="112"></label><label>Fertilizer<input id="fertilizer" type="number" placeholder="198"></label><label>Chemicals<input id="chemicals" type="number" placeholder="64"></label><label>Labor<input id="labor" type="number" placeholder="48"></label><label>Fuel<input id="fuel" type="number" placeholder="38"></label><label>Equipment<input id="equipment" type="number" placeholder="44"></label><label>Custom Hire<input id="custom-hire" type="number" placeholder="22"></label><label>Water / Irrigation<input id="water" type="number" placeholder="18"></label><label>Insurance<input id="insurance" type="number" placeholder="28"></label><label>Maintenance<input id="maintenance" type="number" placeholder="16"></label>
+
+          <fieldset>
+            <legend>Operating Costs Per Acre</legend>
+            <label>Seed<input id="seed" type="number" placeholder="112"></label>
+            <label>Fertilizer<input id="fertilizer" type="number" placeholder="198"></label>
+            <label>Chemicals<input id="chemicals" type="number" placeholder="64"></label>
+            <label>Labor<input id="labor" type="number" placeholder="48"></label>
+            <label>Fuel<input id="fuel" type="number" placeholder="38"></label>
+            <label>Equipment<input id="equipment" type="number" placeholder="44"></label>
+            <label>Custom Hire<input id="custom-hire" type="number" placeholder="22"></label>
+            <label>Water / Irrigation<input id="water" type="number" placeholder="18"></label>
+            <label>Insurance<input id="insurance" type="number" placeholder="28"></label>
+            <label>Maintenance<input id="maintenance" type="number" placeholder="16"></label>
           </fieldset>
-          <fieldset><legend>Financing & Capital</legend>
-            <label>Operating Loan<input id="op-loan" type="number" placeholder="480000"></label><label>Term Loan / Mortgage<input id="term-loan" type="number" placeholder="620000"></label><label>Interest Rate %<input id="interest-rate" type="number" step="0.1" placeholder="6.8"></label><label>Loan Term<input id="loan-term" type="number" placeholder="7"></label><label class="wide">Capital Investments<textarea id="investments" placeholder="Autonomous tractor $380k, irrigation system $120k..."></textarea></label><label class="wide">Goals / Challenges<textarea id="goals" placeholder="Reduce labor costs, improve cash flow, succession planning..."></textarea></label>
+
+          <fieldset>
+            <legend>Financing & Capital</legend>
+            <label>Operating Loan<input id="op-loan" type="number" placeholder="480000"></label>
+            <label>Term Loan / Mortgage<input id="term-loan" type="number" placeholder="620000"></label>
+            <label>Interest Rate %<input id="interest-rate" type="number" step="0.1" placeholder="6.8"></label>
+            <label>Loan Term<input id="loan-term" type="number" placeholder="7"></label>
+            <label class="wide">Capital Investments<textarea id="investments" placeholder="Autonomous tractor $380k, irrigation system $120k..."></textarea></label>
+            <label class="wide">Goals / Challenges<textarea id="goals" placeholder="Reduce labor costs, improve cash flow, succession planning..."></textarea></label>
           </fieldset>
         </div>
         <button class="primary-btn analyze-btn" type="button" id="analyze-btn">Generate Full Business Analysis</button>
       </form>
     </section>
+
     <section class="section analysis-section" id="analysis-section">
-      <div class="section-kicker">Step 2</div><h2 id="report-farm-name">Your Farm Business Analysis</h2><div class="tabs" id="analysis-tabs"></div><div id="analysis-panels"></div>
-      <div class="report-actions"><button class="primary-btn" type="button" id="download-report">Download Full Report</button><a class="ghost-btn" href="#data-entry">Edit Inputs</a></div>
-      <div class="chatbot-card"><div class="chatbot-header"><h3>Ask AgriDecision AI</h3><small>Ask follow-up questions about this report.</small></div><div class="chatbot-messages" id="chatbot-messages"><div class="chat-msg ai">Ask me what to do first, where cost pressure is highest, or whether expansion is safe.</div></div><div class="chatbot-quick"><button type="button" data-question="What are the top 3 things this farm should do immediately?">Top 3 priorities</button><button type="button" data-question="Which cost category should I attack first and why?">Cost advice</button><button type="button" data-question="Is this operation safe to expand right now?">Expansion risk</button></div><div class="chatbot-input-row"><textarea id="chatbot-input" placeholder="Ask a follow-up question..."></textarea><button class="primary-btn" type="button" id="chatbot-send">Send</button></div></div>
+      <div class="section-kicker">Step 2</div>
+      <h2 id="report-farm-name">Your Farm Business Analysis</h2>
+      <div class="tabs" id="analysis-tabs"></div>
+      <div id="analysis-panels"></div>
+      <div class="report-actions">
+        <button class="primary-btn" type="button" id="download-report">Download Full Report</button>
+        <a class="ghost-btn" href="#data-entry">Edit Inputs</a>
+      </div>
+      <div class="chatbot-card">
+        <div class="chatbot-header"><h3>Ask AgriDecision AI</h3><small>Ask follow-up questions about this report.</small></div>
+        <div class="chatbot-messages" id="chatbot-messages"><div class="chat-msg ai">Ask me what to do first, where cost pressure is highest, or whether expansion is safe.</div></div>
+        <div class="chatbot-quick">
+          <button type="button" data-question="What are the top 3 things this farm should do immediately?">Top 3 priorities</button>
+          <button type="button" data-question="Which cost category should I attack first and why?">Cost advice</button>
+          <button type="button" data-question="Is this operation safe to expand right now?">Expansion risk</button>
+        </div>
+        <div class="chatbot-input-row">
+          <textarea id="chatbot-input" placeholder="Ask a follow-up question..."></textarea>
+          <button class="primary-btn" type="button" id="chatbot-send">Send</button>
+        </div>
+      </div>
     </section>
   </main>
   </div>
 
-  <section class="app-view cme-view" id="cme-view"><div class="section cme-section" id="market-watch-table"><div class="section-kicker">CME Group</div><h2>Commodity futures snapshot</h2><p class="section-lead">Delayed futures prices with a farm-workspace snapshot, quote units, and automatic refresh while this tab is open.</p><div class="cme-snapshot-panel"><div><h3>From your farm workspace</h3><p id="futures-snapshot-summary">Enter commodities in the farm workspace to focus this snapshot.</p></div><button class="ghost-btn" type="button" id="refresh-futures">Refresh Futures</button></div><div class="table-shell cme-snapshot-shell"><table><thead><tr><th>Commodity</th><th>Contract</th><th>Price</th><th>Priced In</th><th>Updated</th></tr></thead><tbody id="futures-snapshot-body"><tr><td colspan="5">Loading futures snapshot...</td></tr></tbody></table></div><div class="table-shell cme-table-shell"><table><thead><tr><th>Group</th><th>Commodity</th><th>Contract</th><th>Price</th><th>Priced In</th><th>Last</th><th>Settle</th><th>Prior</th><th>Change</th><th>Volume</th><th>Updated</th><th>Source</th></tr></thead><tbody id="futures-body"><tr><td colspan="12">Loading futures...</td></tr></tbody></table></div><p class="fineprint" id="futures-note">Market data is delayed, auto-refreshes every 60 seconds while this tab is open, and should be checked directly with CME Group before trading or hedging decisions.</p></div></section>
+  <section class="app-view cme-view" id="cme-view">
+    <div class="section cme-section" id="market-watch-table">
+      <div class="section-kicker">CME Group</div>
+      <h2>Commodity futures prices</h2>
+      <p class="section-lead">Delayed agricultural futures prices, quote units, and automatic refresh while this tab is open.</p>
+      <div class="cme-table-actions">
+        <button class="ghost-btn" type="button" id="refresh-futures">Refresh Futures</button>
+      </div>
+      <div id="cme-snapshot-markers" hidden><span id="futures-snapshot-body"></span><span id="futures-snapshot-summary"></span></div>
+      <div class="table-shell cme-table-shell">
+        <table>
+          <thead>
+            <tr>
+              <th>Group</th>
+              <th>Commodity</th>
+              <th>Contract</th>
+              <th>Price</th>
+              <th>Priced In</th>
+              <th>Last</th>
+              <th>Settle</th>
+              <th>Prior</th>
+              <th>Change</th>
+              <th>Volume</th>
+              <th>Updated</th>
+              <th>Source</th>
+            </tr>
+          </thead>
+          <tbody id="futures-body"><tr><td colspan="12">Loading futures...</td></tr></tbody>
+        </table>
+      </div>
+      <p class="fineprint" id="futures-note">Market data is delayed, auto-refreshes every 60 seconds while this tab is open, and should be checked directly with CME Group before trading or hedging decisions.</p>
+    </div>
+  </section>
 
-  <section class="app-view ai-view" id="ai-view"><div class="section ai-lab"><div class="section-kicker">AgriDecision AI</div><h2>Ask all configured AIs at once</h2><p class="section-lead">This tab combines the AI providers that are configured in Vercel and uses your saved account/project information as context.</p><div class="ai-layout"><div class="ai-context-panel"><h3>Current saved context</h3><p id="ai-context-summary">Create an account and save a project to use farm data as AI context.</p><button class="ghost-btn" type="button" id="ai-save-context">Save Current Project</button></div><div class="chatbot-card ai-combo-card"><div class="chatbot-header"><h3>AgriDecision AI</h3><small>Uses all configured API providers together when more than one is available.</small></div><div class="chatbot-messages" id="ai-combo-messages"><div class="chat-msg ai">Ask a farm business, financing, commodity, or project question. I will use your saved project details.</div></div><div class="chatbot-quick"><button type="button" data-ai-question="Use my saved project and tell me the biggest decision I should make this week.">Weekly decision</button><button type="button" data-ai-question="Compare my revenue, costs, debt, and risk. What is the strongest recommendation?">Full recommendation</button><button type="button" data-ai-question="What questions should I ask my lender based on this farm project?">Lender questions</button></div><div class="chatbot-input-row"><textarea id="ai-combo-input" placeholder="Ask AgriDecision AI..."></textarea><button class="primary-btn" type="button" id="ai-combo-send">Send</button></div></div></div></div></section>
+  <section class="app-view ai-view" id="ai-view">
+    <div class="section ai-lab">
+      <div class="section-kicker">AgriDecision AI</div>
+      <h2>Ask all configured AIs at once</h2>
+      <p class="section-lead">This tab combines the AI providers that are configured in Vercel and uses your saved account/project information as context.</p>
 
-  <section class="app-view story-view" id="story-view"><div class="section story-section"><div class="section-kicker">The Story</div><h2>Built for farm decisions that cannot wait for perfect conditions</h2><p class="section-lead">AgriDecision AI was created for producers who need business-grade answers from the numbers they already manage: acres, yields, prices, debt, costs, goals, and risk.</p>
-    <div class="story-intro"><div><h3>Why it exists</h3><p>Farmers make high-stakes calls with narrow timing windows. A lender conversation, equipment purchase, hedge, land rent decision, or input plan can shift the whole year. AgriDecision AI turns scattered farm information into a clearer operating picture.</p></div><div><h3>What it does</h3><p>It combines saved project data, delayed commodity futures context, and configured AI providers to produce financial analysis, risk scenarios, investment thinking, and practical next steps for the operation.</p></div></div>
-    <div class="story-flow" aria-label="AgriDecision AI workflow"><article><span>01</span><h3>Capture the operation</h3><p>Save farm profile details, revenue, operating costs, debt, capital plans, and management goals under separate projects.</p></article><article><span>02</span><h3>Analyze the numbers</h3><p>Generate lender-style summaries with break-even thinking, cash-flow pressure, risk exposure, and investment recommendations.</p></article><article><span>03</span><h3>Ask better questions</h3><p>Use the AI tab to ask follow-up questions with the current project as context, including lender prep, expansion risk, and weekly priorities.</p></article></div>
-    <section class="story-creators" aria-labelledby="story-creators-title"><div class="story-creators-heading"><span>Created by</span><h3 id="story-creators-title">The people behind AgriDecision AI</h3></div><div class="creator-grid"><article class="creator-profile"><div class="creator-photo"><span aria-hidden="true">JM</span></div><div><h4>Jose Mercado</h4><p>Co-creator, AgriDecision AI</p></div></article><article class="creator-profile"><div class="creator-photo"><span aria-hidden="true">AW</span><img src="/assets/creators/avery-weddle.jpg" alt="Avery Weddle" loading="lazy" onerror="this.hidden=true"></div><div><h4>Avery Weddle</h4><p>Co-creator, AgriDecision AI</p></div></article></div></section>
-    <div class="story-note"><h3>Built to travel with the user</h3><p>With cloud accounts configured, AgriDecision AI saves profiles, projects, reports, and chat history behind sign-in so the same work can reload across devices. If cloud sync is not connected yet, the site keeps saving locally in the browser as a fallback.</p></div>
-  </div></section>
+      <div class="ai-layout">
+        <div class="ai-context-panel">
+          <h3>Current saved context</h3>
+          <p id="ai-context-summary">Create an account and save a project to use farm data as AI context.</p>
+          <button class="ghost-btn" type="button" id="ai-save-context">Save Current Project</button>
+        </div>
+
+        <div class="chatbot-card ai-combo-card">
+          <div class="chatbot-header">
+            <h3>AgriDecision AI</h3>
+            <small>Uses all configured API providers together when more than one is available.</small>
+          </div>
+          <div class="chatbot-messages" id="ai-combo-messages">
+            <div class="chat-msg ai">Ask a farm business, financing, commodity, or project question. I will use your saved project details.</div>
+          </div>
+          <div class="chatbot-quick">
+            <button type="button" data-ai-question="Use my saved project and tell me the biggest decision I should make this week.">Weekly decision</button>
+            <button type="button" data-ai-question="Compare my revenue, costs, debt, and risk. What is the strongest recommendation?">Full recommendation</button>
+            <button type="button" data-ai-question="What questions should I ask my lender based on this farm project?">Lender questions</button>
+          </div>
+          <div class="chatbot-input-row">
+            <textarea id="ai-combo-input" placeholder="Ask AgriDecision AI..."></textarea>
+            <button class="primary-btn" type="button" id="ai-combo-send">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="app-view story-view" id="story-view">
+    <div class="section story-section">
+      <div class="section-kicker">The Story</div>
+      <h2>Built for farm decisions that cannot wait for perfect conditions</h2>
+      <p class="section-lead">AgriDecision AI was created for producers who need business-grade answers from the numbers they already manage: acres, yields, prices, debt, costs, goals, and risk.</p>
+
+      <div class="story-intro">
+        <div>
+          <h3>Why it exists</h3>
+          <p>Farmers make high-stakes calls with narrow timing windows. A lender conversation, equipment purchase, hedge, land rent decision, or input plan can shift the whole year. AgriDecision AI turns scattered farm information into a clearer operating picture.</p>
+        </div>
+        <div>
+          <h3>What it does</h3>
+          <p>It combines saved project data, delayed commodity futures context, and configured AI providers to produce financial analysis, risk scenarios, investment thinking, and practical next steps for the operation.</p>
+        </div>
+      </div>
+
+      <div class="story-flow" aria-label="AgriDecision AI workflow">
+        <article>
+          <span>01</span>
+          <h3>Capture the operation</h3>
+          <p>Save farm profile details, revenue, operating costs, debt, capital plans, and management goals under separate projects.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <h3>Analyze the numbers</h3>
+          <p>Generate lender-style summaries with break-even thinking, cash-flow pressure, risk exposure, and investment recommendations.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <h3>Ask better questions</h3>
+          <p>Use the AI tab to ask follow-up questions with the current project as context, including lender prep, expansion risk, and weekly priorities.</p>
+        </article>
+      </div>
+
+      <section class="story-creators" aria-labelledby="story-creators-title">
+        <div class="story-creators-heading">
+          <span>Created by</span>
+          <h3 id="story-creators-title">The people behind AgriDecision AI</h3>
+        </div>
+        <div class="creator-grid">
+          <article class="creator-profile">
+            <div class="creator-photo">
+              <span aria-hidden="true">JM</span>
+              <img src="/assets/creators/jose-mercado-v2.webp" alt="Jose Mercado" loading="eager" decoding="sync">
+            </div>
+            <div>
+              <h4>Jose Mercado</h4>
+              <p>Co-creator, AgriDecision AI</p>
+            </div>
+          </article>
+          <article class="creator-profile">
+            <div class="creator-photo">
+              <span aria-hidden="true">AW</span>
+              <img src="/assets/creators/avery-weddle-v2.webp" alt="Avery Weddle" loading="eager" decoding="sync">
+            </div>
+            <div>
+              <h4>Avery Weddle</h4>
+              <p>Co-creator, AgriDecision AI</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <div class="story-note">
+        <h3>Built to travel with the user</h3>
+        <p>With cloud accounts configured, AgriDecision AI saves profiles, projects, reports, and chat history behind sign-in so the same work can reload across devices. If cloud sync is not connected yet, the site keeps saving locally in the browser as a fallback.</p>
+      </div>
+    </div>
+  </section>
 
   <footer><strong>AgriDecision AI</strong> · Farm Business Analytics & Investment Simulator</footer>
-  <script src="/app.js"></script><script src="/cme-table.js"></script><script src="/cloud-sync.js"></script>
+  <script src="/field-point-order-fix.js"></script>
+  <script src="/cme-single-table-fix.js"></script>
+  <script src="/app.js"></script>
+  <script src="/cme-table.js"></script>
+  <script src="/cloud-sync.js"></script>
 </body>
 </html>

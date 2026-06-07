@@ -37,7 +37,10 @@
       try {
         const fields = JSON.parse(value);
         if (Array.isArray(fields)) {
-          value = JSON.stringify(fields.map(field => ({ ...field, points: orderPoints(field?.points) })));
+          value = JSON.stringify(fields.map(field => ({
+            ...field,
+            points: orderPoints(field?.points)
+          })));
         }
       } catch {}
     }
@@ -56,24 +59,26 @@
       const name = profile.querySelector("h4")?.textContent?.trim();
       const photo = profile.querySelector(".creator-photo");
       if (!photo || !name) return;
-      photo.querySelectorAll("img, picture").forEach(element => element.remove());
       const source = name === "Jose Mercado"
-        ? "/assets/creators/jose-mercado.jpg"
+        ? "/assets/creators/jose-mercado-v2.webp"
         : name === "Avery Weddle"
-          ? "/assets/creators/avery-weddle.jpg"
+          ? "/assets/creators/avery-weddle-v2.webp"
           : "";
       if (source) {
-        const image = document.createElement("img");
+        const image = photo.querySelector("img") || document.createElement("img");
         image.src = source;
         image.alt = name;
-        image.loading = "lazy";
-        image.addEventListener("error", () => image.remove(), { once: true });
-        photo.appendChild(image);
+        image.loading = "eager";
+        image.decoding = "sync";
+        if (!image.isConnected) photo.appendChild(image);
       }
     });
   }
 
   normalizeSavedPoints();
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fixCreatorPhotos, { once: true });
-  else fixCreatorPhotos();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", fixCreatorPhotos, { once: true });
+  } else {
+    fixCreatorPhotos();
+  }
 }());
