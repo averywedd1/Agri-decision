@@ -21,7 +21,8 @@
     "/account-sync-controller.js",
     "/tools-map-placement-fix.js",
     "/ai-chat-map-fixes.js",
-    "/cme-single-table-fix.js"
+    "/cme-single-table-fix.js",
+    "/field-persistence-fix.js"
   ];
 
   function loadScript(src) {
