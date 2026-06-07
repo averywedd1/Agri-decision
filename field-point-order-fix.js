@@ -62,7 +62,7 @@
       const source = name === "Jose Mercado"
         ? "/assets/creators/jose-mercado-v2.webp"
         : name === "Avery Weddle"
-          ? "/assets/creators/avery-weddle-v3.webp"
+          ? "/assets/creators/avery-weddle-v6.webp"
           : "";
       if (source) {
         const image = photo.querySelector("img") || document.createElement("img");
