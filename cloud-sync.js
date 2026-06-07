@@ -1,5 +1,8 @@
 (function () {
   const scripts = [
+    "/field-map-world.js",
+    "/field-persistence-fix.js",
+    "/refresh-state-fix.js",
     "/overlap-fix.js",
     "/tools.js",
     "/enhancements.js",
@@ -17,12 +20,10 @@
     "/cloud-sync-repair.js",
     "/qc-pass-fixes.js",
     "/field-point-order-fix.js",
-    "/field-map-world.js",
     "/account-sync-controller.js",
     "/tools-map-placement-fix.js",
     "/ai-chat-map-fixes.js",
-    "/cme-single-table-fix.js",
-    "/field-persistence-fix.js"
+    "/cme-single-table-fix.js"
   ];
 
   function loadScript(src) {
