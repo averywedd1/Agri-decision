@@ -37,10 +37,7 @@
       try {
         const fields = JSON.parse(value);
         if (Array.isArray(fields)) {
-          value = JSON.stringify(fields.map(field => ({
-            ...field,
-            points: orderPoints(field?.points)
-          })));
+          value = JSON.stringify(fields.map(field => ({ ...field, points: orderPoints(field?.points) })));
         }
       } catch {}
     }
@@ -60,10 +57,15 @@
       const photo = profile.querySelector(".creator-photo");
       if (!photo || !name) return;
       photo.querySelectorAll("img, picture").forEach(element => element.remove());
-      if (name === "Jose Mercado") {
+      const source = name === "Jose Mercado"
+        ? "/assets/creators/jose-mercado.jpg"
+        : name === "Avery Weddle"
+          ? "/assets/creators/avery-weddle.jpg"
+          : "";
+      if (source) {
         const image = document.createElement("img");
-        image.src = "/assets/creators/jose-mercado.jpg";
-        image.alt = "Jose Mercado";
+        image.src = source;
+        image.alt = name;
         image.loading = "lazy";
         image.addEventListener("error", () => image.remove(), { once: true });
         photo.appendChild(image);
@@ -72,9 +74,6 @@
   }
 
   normalizeSavedPoints();
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", fixCreatorPhotos, { once: true });
-  } else {
-    fixCreatorPhotos();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fixCreatorPhotos, { once: true });
+  else fixCreatorPhotos();
 }());
