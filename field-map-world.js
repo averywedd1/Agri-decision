@@ -3,6 +3,7 @@
   const POLYGON_KEY = "agridecisionFieldPolygons";
   let map = null;
   let shapeLayer = null;
+  let fieldLayers = [];
   let markers = [];
   let leafletPromise = null;
 
@@ -43,20 +44,49 @@
     return Math.abs(area / 2) / 4046.8564224;
   }
 
+  function readSavedFields() {
+    try {
+      const fields = JSON.parse(localStorage.getItem(POLYGON_KEY) || "[]");
+      return Array.isArray(fields)
+        ? fields
+          .filter(field => field && field.id !== "primary-field-boundary")
+          .map((field, index) => ({
+            id: field.id || `field-${index + 1}`,
+            name: field.name || `Field ${index + 1}`,
+            tenure: field.tenure === "leased" ? "leased" : "owned",
+            acres: Number(field.acres) || acresFor(field.points || []),
+            mappedAcres: Number(field.mappedAcres) || acresFor(field.points || []),
+            points: Array.isArray(field.points)
+              ? field.points
+                .map(point => ({ lat: Number(point.lat), lng: Number(point.lng) }))
+                .filter(point => Number.isFinite(point.lat) && Number.isFinite(point.lng))
+              : []
+          }))
+          .filter(field => field.points.length >= 3)
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
   function saveBoundary(points) {
     const cleaned = (points || [])
       .map(point => ({ lat: Number(point.lat), lng: Number(point.lng) }))
       .filter(point => Number.isFinite(point.lat) && Number.isFinite(point.lng));
     const acres = acresFor(cleaned);
+    const savedFields = readSavedFields();
     localStorage.setItem(FIELD_KEY, JSON.stringify(cleaned));
-    localStorage.setItem(POLYGON_KEY, JSON.stringify(cleaned.length >= 3 ? [{
+    localStorage.setItem(POLYGON_KEY, JSON.stringify([
+      ...savedFields,
+      ...(cleaned.length >= 3 ? [{
       id: "primary-field-boundary",
       name: "Primary field boundary",
       points: cleaned,
       acres,
       updatedAt: new Date().toISOString()
-    }] : []));
-    window.dispatchEvent(new CustomEvent("agri-field-boundary-updated", { detail: { points: cleaned, acres } }));
+      }] : [])
+    ]));
+    window.dispatchEvent(new CustomEvent("agri-field-boundary-updated", { detail: { points: cleaned, acres, fields: savedFields } }));
   }
 
   function fieldContextText() {
@@ -141,6 +171,7 @@ Boundary coordinates: ${coordinates}`;
 
   function draw() {
     const points = readBoundary();
+    const savedFields = readSavedFields();
     const acres = acresFor(points);
     const acresText = $("field-boundary-acres");
     const list = $("field-boundary-list");
@@ -151,6 +182,16 @@ Boundary coordinates: ${coordinates}`;
         : "<span>No boundary points yet.</span>";
     }
     if (!map || !window.L) return;
+    fieldLayers.forEach(layer => layer.remove());
+    fieldLayers = savedFields.map(field => {
+      const leased = field.tenure === "leased";
+      return window.L.polygon(field.points.map(point => [point.lat, point.lng]), {
+        color: leased ? "#b7791f" : "#2d6628",
+        weight: 3,
+        fillColor: leased ? "#d69e2e" : "#3a8035",
+        fillOpacity: 0.22
+      }).addTo(map).bindTooltip(`${field.name}: ${leased ? "Leased" : "Owned"} - ${field.acres.toFixed(1)} acres`);
+    });
     markers.forEach(marker => marker.remove());
     markers = points.map((point, index) => window.L.circleMarker([point.lat, point.lng], {
       radius: 5,
@@ -220,6 +261,10 @@ Boundary coordinates: ${coordinates}`;
   }
 
   function bindControls() {
+    if (document.documentElement.dataset.worldMapBoundaryListener !== "true") {
+      document.documentElement.dataset.worldMapBoundaryListener = "true";
+      window.addEventListener("agri-field-boundary-updated", () => setTimeout(draw, 0));
+    }
     const undo = $("undo-field-point");
     if (undo && undo.dataset.worldMapBound !== "true") {
       undo.dataset.worldMapBound = "true";
