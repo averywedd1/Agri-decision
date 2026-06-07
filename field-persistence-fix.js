@@ -1,6 +1,7 @@
 (function () {
   const FIELD_KEY = "agriFieldBoundary";
   const POLYGON_KEY = "agridecisionFieldPolygons";
+  const BACKUP_PREFIX = "agridecisionFieldState:";
 
   function cleanPoints(points) {
     return (Array.isArray(points) ? points : [])
@@ -37,6 +38,39 @@
     return cleanPoints(readJson(FIELD_KEY, []));
   }
 
+  function mergeFields(...sources) {
+    const merged = new Map();
+    sources.flatMap(source => cleanFields(source)).forEach(field => {
+      const key = field.id || `${field.name}:${JSON.stringify(field.points)}`;
+      const current = merged.get(key);
+      const currentTime = Date.parse(current?.updatedAt || "") || 0;
+      const nextTime = Date.parse(field.updatedAt || "") || 0;
+      if (!current || nextTime >= currentTime) merged.set(key, field);
+    });
+    return Array.from(merged.values());
+  }
+
+  function backupKey(projectId) {
+    return `${BACKUP_PREFIX}${projectId || "guest"}`;
+  }
+
+  function readBackup(projectId) {
+    const backup = readJson(backupKey(projectId), {});
+    return {
+      fields: cleanFields(backup?.fields),
+      draft: cleanPoints(backup?.draft)
+    };
+  }
+
+  function writeBackup(projectId, fields, draft) {
+    if (!projectId) return;
+    localStorage.setItem(backupKey(projectId), JSON.stringify({
+      fields: cleanFields(fields),
+      draft: cleanPoints(draft),
+      updatedAt: new Date().toISOString()
+    }));
+  }
+
   function notify(fields, draft) {
     window.dispatchEvent(new CustomEvent("agri-field-boundary-updated", {
       detail: { fields, points: draft }
@@ -57,11 +91,11 @@
       project?.farmData?.fieldBoundaries,
       project?.farmData?.fieldPolygons
     ];
-    for (const candidate of candidates) {
-      if (Array.isArray(candidate)) return cleanFields(candidate);
-    }
     const single = project?.farmData?.fieldBoundary;
-    return single?.points?.length >= 3 ? cleanFields([single]) : [];
+    return mergeFields(
+      ...candidates,
+      single?.points?.length >= 3 ? [single] : []
+    );
   }
 
   function projectDraft(project) {
@@ -84,8 +118,16 @@
 
   function restoreProject(project, options = {}) {
     if (!project) return false;
-    const fields = projectFields(project);
-    const draft = projectDraft(project);
+    const backup = readBackup(project.id);
+    const localFields = options.preserveLocal !== false ? readFields() : [];
+    const localDraft = options.preserveLocal !== false ? readDraft() : [];
+    const fields = mergeFields(projectFields(project), backup.fields, localFields);
+    const projectDraftPoints = projectDraft(project);
+    const draft = projectDraftPoints.length
+      ? projectDraftPoints
+      : backup.draft.length
+        ? backup.draft
+        : localDraft;
     const projectHasMapState =
       Array.isArray(project.fieldPolygons) ||
       Array.isArray(project.farmData?.fieldBoundaries) ||
@@ -96,6 +138,7 @@
 
     if (!projectHasMapState && options.preserveLocal !== false) return false;
     writeMapState(fields, draft);
+    writeBackup(project.id, fields, draft);
     return true;
   }
 
@@ -158,6 +201,7 @@
       if (index < 0) return;
       store.projects[index] = addMapState({ ...store.projects[index] });
       saveStore(store);
+      writeBackup(store.activeProjectId, readFields(), readDraft());
     } catch {}
   }
 
