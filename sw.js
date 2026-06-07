@@ -1,4 +1,4 @@
-const CACHE_NAME = "agridecision-shell-v23";
+const CACHE_NAME = "agridecision-shell-v24";
 const APP_SHELL = [
   "/",
   "/index.html",
