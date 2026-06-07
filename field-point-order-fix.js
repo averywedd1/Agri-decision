@@ -2,6 +2,7 @@
   const FIELD_KEY = "agriFieldBoundary";
   const POLYGON_KEY = "agridecisionFieldPolygons";
   const nativeSetItem = Storage.prototype.setItem;
+  let lastBoundaryWriteAt = 0;
 
   function orderPoints(points) {
     const cleaned = Array.isArray(points)
@@ -23,7 +24,13 @@
   Storage.prototype.setItem = function (key, value) {
     if (key === FIELD_KEY) {
       try {
-        value = JSON.stringify(orderPoints(JSON.parse(value)));
+        const points = orderPoints(JSON.parse(value));
+        const current = orderPoints(JSON.parse(this.getItem(FIELD_KEY) || "[]"));
+        const now = Date.now();
+        const duplicateMapHandler = now - lastBoundaryWriteAt < 40 && points.length === current.length + 1;
+        if (duplicateMapHandler) return;
+        lastBoundaryWriteAt = now;
+        value = JSON.stringify(points);
       } catch {}
     }
     if (key === POLYGON_KEY) {
