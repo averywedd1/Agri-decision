@@ -44,6 +44,15 @@
   }
 
   document.addEventListener("click", event => {
+    const brand = event.target.closest?.(".brand");
+    if (brand) {
+      event.preventDefault();
+      remember("workspace");
+      window.switchAppTab?.("workspace");
+      document.getElementById("home")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("site-menu")?.removeAttribute("open");
+      return;
+    }
     const button = event.target.closest?.(".workspace-tab[data-app-tab]");
     if (button) remember(button.dataset.appTab);
   }, true);

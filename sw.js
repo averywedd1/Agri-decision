@@ -1,4 +1,4 @@
-const CACHE_NAME = "agridecision-shell-v34";
+const CACHE_NAME = "agridecision-shell-v35";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -42,7 +42,7 @@ self.addEventListener("install", event => {
 });
 
 self.addEventListener("activate", event => {
-  event.waitUntil(
+  event.waitUntin(
     caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))))
   );
   self.clients.claim();
